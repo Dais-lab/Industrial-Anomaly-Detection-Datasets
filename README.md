@@ -1,4 +1,4 @@
-# Industrial Anomaly Detection Datasets (Awesome-style)
+# Industrial Anomaly Detection Datasets
 
 This repository systematically organizes popular datasets for research and benchmarking, with a primary focus on Anomaly Detection in the industrial vision domain.
 
@@ -33,9 +33,9 @@ This repository systematically organizes popular datasets for research and bench
 Table row template for adding new datasets (copy and fill in the values):
 
 ```markdown
-| 이름     | 도메인      | 모달리티 | 태스크  | 어노테이션  | 규모(이미지/영상) | 연도 | 라이선스 | 링크   | 논문/페이지 |
-| -------- | ----------- | -------- | ------- | ----------- | ----------------- | ---- | -------- | ------ | ----------- |
-| MVTec AD | 일반/다품목 | RGB      | AD, Seg | 이미지/픽셀 | 5k+               | 2019 | 연구용   | [공식] | [논문]      |
+| Name         | Domain | Modality | Task | Annotation | Total | Normal | Defect | Year | License | Link | Paper/Page |
+| ------------ | ------ | -------- | ---- | ---------- | ----- | ------ | ------ | ---- | ------- | ---- | ---------- |
+| (Please add) |        |          |      |            |       |        |        |      |         |      |            |
 ```
 
 Field Guide :
@@ -45,7 +45,7 @@ Field Guide :
 - Modality: RGB, Grayscale, Video, Depth, 3D, Multi, etc.
 - Task: AD, Seg, Cls, Det, etc.
 - Annotation: Image-level/pixel-level/box-level, etc.
-- Scale: Approximate number of samples (official number if possible)
+- Scale: Provide counts for total/normal/defect if possible
 - License: MIT, CC-BY, research use, etc. (If unclear, write "Restricted/Contact required", etc.)
 
 ## Tag/Notation Rules
@@ -59,30 +59,29 @@ Field Guide :
 
 ### 2D RGB
 
-| Name               | Domain        | Modality | Task    | Annotation | Scale (images) | Year | License  | Link       | Paper/Page |
-| ------------------ | ------------- | -------- | ------- | ---------- | -------------- | ---- | -------- | ---------- | ---------- |
-| (Example) MVTec AD | General/Multi | RGB      | AD, Seg | Img/Pix    | 5k+            | 2019 | Research | [Official] | [Paper]    |
-| (Please add)       |               |          |         |            |                |      |          |            |            |
+| Name                                                | Domain        | Modality | Task    | Annotation | Total | Normal | Defect | Year | License  | Link       | Paper/Page |
+| --------------------------------------------------- | ------------- | -------- | ------- | ---------- | ----- | ------ | ------ | ---- | -------- | ---------- | ---------- |
+| (Example) [MVTec AD](dataset-cards/mvtec/README.md) | General/Multi | RGB      | AD, Seg | Img/Pix    | 5k+   | -      | -      | 2019 | Research | [Official] | [Paper]    |
+| (Please add)                                        |               |          |         |            |       |        |        |      |          |            |            |
 
 ### 3D/Multimodal
 
-| Name                  | Domain        | Modality  | Task    | Annotation | Scale | Year | License  | Link       | Paper/Page |
-| --------------------- | ------------- | --------- | ------- | ---------- | ----- | ---- | -------- | ---------- | ---------- |
-| (Example) MVTec 3D-AD | General/Multi | 3D, Depth | AD, Seg | Img/Pix    | -     | 2021 | Research | [Official] | [Paper]    |
-| (Please add)          |               |           |         |            |       |      |          |            |            |
+| Name                  | Domain        | Modality  | Task    | Annotation | Total | Normal | Defect | Year | License  | Link       | Paper/Page |
+| --------------------- | ------------- | --------- | ------- | ---------- | ----- | ------ | ------ | ---- | -------- | ---------- | ---------- |
+| (Example) MVTec 3D-AD | General/Multi | 3D, Depth | AD, Seg | Img/Pix    | -     | -      | -      | 2021 | Research | [Official] | [Paper]    |
+| (Please add)          |               |           |         |            |       |        |        |      |          |            |            |
 
 ## Domain-specific Catalog
 
 ### Surface/Metal
 
-| Name                         | Modality | Task    | Annotation | Scale | Year | License | Link       | Paper/Page |
-| ---------------------------- | -------- | ------- | ---------- | ----- | ---- | ------- | ---------- | ---------- |
-| (Example) NEU Surface Defect | RGB      | AD, Cls | Img        | -     | 2013 | -       | [Official] | [Paper]    |
-| (Please add)                 |          |         |            |       |      |         |            |            |
+| Name                         | Modality | Task    | Annotation | Total | Normal | Defect | Year | License | Link       | Paper/Page |
+| ---------------------------- | -------- | ------- | ---------- | ----- | ------ | ------ | ---- | ------- | ---------- | ---------- |
+| (Example) NEU Surface Defect | RGB      | AD, Cls | Img        | -     | -      | -      | 2013 | -       | [Official] | [Paper]    |
+| (Please add)                 |          |         |            |       |        |        |      |         |            |            |
 
 ## Related Repos/Resources
 
-- Awesome series: awesome-IAD, awesome-industrial-datasets, awesome-anomaly-detection, etc.
 - Benchmarks/Leaderboards: Refer to each dataset's official page and paper
 
 ## License
