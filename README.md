@@ -75,10 +75,10 @@ Field Guide :
 
 ### Surface/Metal
 
-| Name                         | Modality | Task    | Annotation | Total | Normal | Defect | Year | License | Link       | Paper/Page |
-| ---------------------------- | -------- | ------- | ---------- | ----- | ------ | ------ | ---- | ------- | ---------- | ---------- |
-| (Example) NEU Surface Defect | RGB      | AD, Cls | Img        | -     | -      | -      | 2013 | -       | [Official] | [Paper]    |
-| (Please add)                 |          |         |            |       |        |        |      |         |            |            |
+| Name                         | Domain        | Modality            | Task    | Annotation | Total  | Normal | Defect     | Year | License         | Link                                          | Paper/Page                                                                                                                                                 |
+| ---------------------------- | ------------- | ------------------- | ------- | ---------- | ------ | ------ | ---------- | ---- | --------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| (Example) NEU Surface Defect | Metal surface | RGB                 | AD, Cls | Img        | -      | -      | -          | 2013 | -               | \[Official]                                   | \[Paper]                                                                                                                                                   |
+| RIAWELC                      | Weld (X-ray)  | Gray (Radiographic) | AD, Cls | Img-level  | 24,407 | ND     | LP, PO, CR   | 2022 | Freely released | [GitHub](https://github.com/stefyste/RIAWELC)                       | [1] [ICMECE 2022](https://www.researchgate.net/publication/369294451_RIAWELC_A_Novel_Dataset_of_Radiographic_Images_for_Automatic_Weld_Defects_Classification) <br> [2] [Manufacturing Letters (Elsevier)](https://doi.org/10.1016/j.mfglet.2022.100) |
 
 ## Related Repos/Resources
 
