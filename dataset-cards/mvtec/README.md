@@ -45,9 +45,9 @@ All results should clearly indicate the evaluation protocol (image-level vs pixe
 
 Report hardware and software context for fairness: GPU type, batch size, input size, mixed precision, framework/version.
 
-| Model         | Params (M) | VRAM @input,batch (GB) | Inference (FPS) | Train time / epoch | Hardware     | Notes                                                                         |
-| ------------- | ---------- | ---------------------- | --------------- | ------------------ | ------------ | ----------------------------------------------------------------------------- |
-| EfficientAD-M | —          | —                      | ~222 (≈4.5 ms)  | —                  | NVIDIA A6000 | Inference time per image from paper. [Link](https://arxiv.org/abs/2303.14535) |
+| Model         | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware     | Precision Type  |
+| ------------- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | ------------ | --------------- |
+| EfficientAD-M | 23.5       | 256×256    | 32         | 8.2       | 222             | 45 min           | NVIDIA A6000 | Mixed (FP16/32) |
 
 Guidelines:
 
