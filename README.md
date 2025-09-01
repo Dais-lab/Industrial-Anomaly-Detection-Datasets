@@ -10,8 +10,6 @@ This repository systematically organizes popular datasets for research and bench
 - [Quick Contribution Guide](#quick-contribution-guide)
 - [Tag/Notation Rules](#tagnotation-rules)
 - [Core Benchmarks](#core-benchmarks)
-  - [2D RGB](#2d-rgb)
-  - [3D/Multimodal](#3dmultimodal)
 - [Domain-specific Catalog](#domain-specific-catalog)
   - [Surface/Metal](#surfacemetal)
 - [Related Repos/Resources](#related-reposresources)
@@ -33,9 +31,9 @@ This repository systematically organizes popular datasets for research and bench
 Table row template for adding new datasets (copy and fill in the values):
 
 ```markdown
-| Name         | Domain | Modality | Task | Annotation | Total | Normal | Defect | Year | License | Link | Paper/Page |
-| ------------ | ------ | -------- | ---- | ---------- | ----- | ------ | ------ | ---- | ------- | ---- | ---------- |
-| (Please add) |        |          |      |            |       |        |        |      |         |      |            |
+| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Model | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
+| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | ----- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
+| -    | -      | -        | -           | -    | -          | -     | -      | -      | -     | -          | -          | -          | -         | -               | -                | -        | -              | -    | -       | -    | -          |
 ```
 
 Field Guide :
@@ -55,30 +53,63 @@ Field Guide :
 - Annotation: [Img-level], [Pix-level], [Box-level]
 - Link priority: Official site > Official GitHub/author page > Public mirror
 
-## Core Benchmarks
-
-### 2D RGB
-
-| Name                                                | Domain        | Modality | Task    | Annotation | Total | Normal | Defect | Year | License  | Link       | Paper/Page |
-| --------------------------------------------------- | ------------- | -------- | ------- | ---------- | ----- | ------ | ------ | ---- | -------- | ---------- | ---------- |
-| (Example) [MVTec AD](dataset-cards/mvtec/README.md) | General/Multi | RGB      | AD, Seg | Img/Pix    | 5k+   | -      | -      | 2019 | Research | [Official] | [Paper]    |
-| (Please add)                                        |               |          |         |            |       |        |        |      |          |            |            |
-
-### 3D/Multimodal
-
-| Name                  | Domain        | Modality  | Task    | Annotation | Total | Normal | Defect | Year | License  | Link       | Paper/Page |
-| --------------------- | ------------- | --------- | ------- | ---------- | ----- | ------ | ------ | ---- | -------- | ---------- | ---------- |
-| (Example) MVTec 3D-AD | General/Multi | 3D, Depth | AD, Seg | Img/Pix    | -     | -      | -      | 2021 | Research | [Official] | [Paper]    |
-| (Please add)          |               |           |         |            |       |        |        |      |          |            |            |
-
 ## Domain-specific Catalog
 
-### Surface/Metal
+### Press
 
-| Name                         | Domain        | Modality            | Task    | Annotation | Total  | Normal | Defect     | Year | License         | Link                                          | Paper/Page                                                                                                                                                 |
-| ---------------------------- | ------------- | ------------------- | ------- | ---------- | ------ | ------ | ---------- | ---- | --------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| (Example) NEU Surface Defect | Metal surface | RGB                 | AD, Cls | Img        | -      | -      | -          | 2013 | -               | \[Official]                                   | \[Paper]                                                                                                                                                   |
-| RIAWELC                      | Weld (X-ray)  | Gray (Radiographic) | AD, Cls | Img-level  | 24,407 | ND     | LP, PO, CR   | 2022 | Freely released | [GitHub](https://github.com/stefyste/RIAWELC)                       | [1] [ICMECE 2022](https://www.researchgate.net/publication/369294451_RIAWELC_A_Novel_Dataset_of_Radiographic_Images_for_Automatic_Weld_Defects_Classification) <br> [2] [Manufacturing Letters (Elsevier)](https://www.researchgate.net/publication/366209086_Welding_Defects_Classification_Through_a_Convolutional_Neural_Network)
+#### Supervised Learning
+
+| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Model | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
+| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | ----- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
+| -    | -      | -        | -           | -    | -          | -     | -      | -      | -     | -          | -          | -          | -         | -               | -                | -        | -              | -    | -       | -    | -          |
+
+#### Unsupervised Learning
+
+| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Model | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
+| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | ----- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
+| -    | -      | -        | -           | -    | -          | -     | -      | -      | -     | -          | -          | -          | -         | -               | -                | -        | -              | -    | -       | -    | -          |
+
+### Body/Welding
+
+#### Supervised Learning
+
+| Name    | Domain       | Modality            | Defect Type | Task    | Annotation | Total  | Normal      | Defect      | Model | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License         | Link                                          | Paper/Page                                                                                                                                                                                                                                            |
+| ------- | ------------ | ------------------- | ----------- | ------- | ---------- | ------ | ----------- | ----------- | ----- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | --------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RIAWELC | Weld (X-ray) | Gray (Radiographic) | LP, PO, CR  | AD, Cls | Img-level  | 24,407 | 이미지 개수 | 이미지 개수 | -     | -          | -          | -          | -         | -               | -                | -        | -              | 2022 | Freely released | [GitHub](https://github.com/stefyste/RIAWELC) | [1] [ICMECE 2022](https://www.researchgate.net/publication/369294451_RIAWELC_A_Novel_Dataset_of_Radiographic_Images_for_Automatic_Weld_Defects_Classification) <br> [2] [Manufacturing Letters (Elsevier)](https://doi.org/10.1016/j.mfglet.2022.100) |
+
+#### Unsupervised Learning
+
+| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Model | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
+| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | ----- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
+| -    | -      | -        | -           | -    | -          | -     | -      | -      | -     | -          | -          | -          | -         | -               | -                | -        | -              | -    | -       | -    | -          |
+
+### Painting
+
+#### Supervised Learning
+
+| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Model | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
+| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | ----- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
+| -    | -      | -        | -           | -    | -          | -     | -      | -      | -     | -          | -          | -          | -         | -               | -                | -        | -              | -    | -       | -    | -          |
+
+#### Unsupervised Learning
+
+| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Model | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
+| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | ----- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
+| -    | -      | -        | -           | -    | -          | -     | -      | -      | -     | -          | -          | -          | -         | -               | -                | -        | -              | -    | -       | -    | -          |
+
+### Assembly
+
+#### Supervised Learning
+
+| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Model | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
+| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | ----- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
+| -    | -      | -        | -           | -    | -          | -     | -      | -      | -     | -          | -          | -          | -         | -               | -                | -        | -              | -    | -       | -    | -          |
+
+#### Unsupervised Learning
+
+| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Model | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
+| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | ----- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
+| -    | -      | -        | -           | -    | -          | -     | -      | -      | -     | -          | -          | -          | -         | -               | -                | -        | -              | -    | -       | -    | -          |
 
 ## Related Repos/Resources
 
