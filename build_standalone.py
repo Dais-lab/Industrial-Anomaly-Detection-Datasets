@@ -6,11 +6,12 @@ web/ 의 index.html + styles.css + data.js + app.js 를 하나로 합쳐
 
 사용: python3 build_standalone.py   (먼저 convert.py 로 data.js 최신화 권장)
 """
-import os, re
+import os, re, sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 WEB = os.path.join(ROOT, "web")
-OUT = os.path.join(ROOT, "standalone.html")
+# 출력 파일명: 인자로 지정 가능 (예: python3 build_standalone.py preview.html)
+OUT = os.path.join(ROOT, sys.argv[1] if len(sys.argv) > 1 else "standalone.html")
 
 def read(name):
     with open(os.path.join(WEB, name), encoding="utf-8") as f:

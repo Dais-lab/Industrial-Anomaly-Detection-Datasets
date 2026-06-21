@@ -132,20 +132,28 @@ a:hover { text-decoration: underline; }
 .topbar {
   position: sticky; top: 0; z-index: 30;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 13px 22px;
+  padding: 12px 24px;
   background: var(--glass-bg);
   -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
   backdrop-filter: blur(var(--blur)) saturate(var(--sat));
   border-bottom: 1px solid var(--glass-brd);
   box-shadow: 0 6px 24px rgba(28,40,90,.08), inset 0 1px 0 var(--glass-rim);
 }
-.brand { min-width: 0; padding-right: 16px; }
-.brand h1 { margin: 0; font-size: 16px; letter-spacing: -.2px; font-weight: 700; line-height: 1.3; }
-.brand .sub { font-size: 11px; color: var(--text-dim); letter-spacing: .2px; }
+.brand { position: relative; min-width: 0; max-width: 60%; padding: 1px 20px 1px 16px; display: flex; flex-direction: column; gap: 3px; }
+.brand::before { content: ""; position: absolute; left: 0; top: 3px; bottom: 3px; width: 3.5px; border-radius: 4px; background: linear-gradient(180deg, var(--accent), var(--accent-2)); }
+.eyebrow {
+  width: max-content; max-width: 100%; font-size: 10.5px; font-weight: 700; letter-spacing: .7px; line-height: 1.2; text-transform: uppercase;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+}
+.brand h1 { margin: 0; font-size: 15.5px; letter-spacing: -.2px; font-weight: 700; line-height: 1.35; }
+.brand .sub { font-size: 11px; color: var(--text-dim); letter-spacing: .3px; }
 .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
+/* 카운트 배지 — '+ 데이터셋 추가' 버튼과 동일한 그라데이션 */
 .badge {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border: 1px solid transparent;
   color: #fff; font-weight: 700; padding: 6px 13px; border-radius: var(--radius-pill);
   font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap;
   box-shadow: 0 4px 14px rgba(59,108,255,.35), inset 0 1px 0 rgba(255,255,255,.4);
@@ -185,7 +193,7 @@ a:hover { text-decoration: underline; }
 /* ---------------- 레이아웃 ---------------- */
 .layout { display: grid; grid-template-columns: 290px 1fr; align-items: start; gap: 18px; padding: 18px 22px; }
 .sidebar {
-  position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto;
+  position: sticky; top: 100px; max-height: calc(100vh - 120px); overflow-y: auto;
   padding: 16px; border-radius: var(--radius);
   background: var(--glass-bg);
   -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
@@ -199,7 +207,7 @@ a:hover { text-decoration: underline; }
 
 /* ---------------- 검색 / 사이드바 ---------------- */
 .search-wrap input {
-  width: 100%; padding: 11px 14px; border: 1px solid var(--glass-brd);
+  width: 100%; padding: 10px 13px; border: 1px solid var(--glass-brd);
   border-radius: var(--radius-sm); background: var(--control-bg); color: var(--text); font-size: 13.5px;
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   box-shadow: inset 0 1px 2px rgba(0,0,0,.06);
@@ -219,8 +227,8 @@ a:hover { text-decoration: underline; }
 .tristate button:hover { background: var(--glass-bg-strong); }
 .tristate button.on { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.4); }
 
-.facet { border-top: 1px solid var(--glass-brd); padding: 11px 0; }
-.facet > summary { cursor: pointer; font-weight: 700; font-size: 13px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+.facet { border-top: 1px solid var(--glass-brd); padding: 10px 0; }
+.facet > summary { cursor: pointer; font-weight: 700; font-size: 12.5px; letter-spacing: .2px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
 .facet > summary::-webkit-details-marker { display: none; }
 .facet > summary .chev { color: var(--text-dim); font-size: 11px; transition: transform .15s; }
 .facet[open] > summary .chev { transform: rotate(90deg); }
@@ -301,12 +309,20 @@ thead th {
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--glass-brd); position: sticky; top: 0; z-index: 1;
 }
-tbody td { padding: 11px 14px; border-bottom: 1px solid color-mix(in srgb, var(--glass-brd) 60%, transparent); vertical-align: top; }
+tbody td { padding: 13px 16px; border-bottom: 1px solid color-mix(in srgb, var(--glass-brd) 55%, transparent); vertical-align: middle; }
 tbody tr { cursor: pointer; transition: background .12s; }
+tbody tr:nth-child(even) { background: color-mix(in srgb, var(--glass-bg-strong) 28%, transparent); }
 tbody tr:hover { background: var(--glass-bg-strong); }
+tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--accent); }   /* 좌측 액센트 바 */
 tbody tr:last-child td { border-bottom: 0; }
-td.name { font-weight: 700; white-space: nowrap; }
-td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-dim); }
+
+/* 데이터셋 이름 — 글래스 톤에 맞춘 클릭형 타이틀 */
+td.name { max-width: 230px; }
+.ds-name { font-weight: 600; font-size: 13.5px; letter-spacing: -.1px; line-height: 1.3; color: var(--text); transition: color .12s; }
+tbody tr:hover .ds-name { color: var(--accent); }
+tbody tr:hover .ds-name::after { content: " ›"; color: var(--accent); font-weight: 700; }
+
 .cell-chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 280px; }
 
 /* ---------------- 칩 ---------------- */
@@ -316,6 +332,7 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
   -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
 }
 .chip.dim { opacity: .85; }
+.chip.more { background: transparent; border-color: transparent; color: var(--text-dim); font-weight: 600; padding-left: 2px; }
 
 /* ---------------- 카드 ---------------- */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
@@ -429,7 +446,7 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 @media (max-width: 768px) {
   /* 상단바: 제목 위 / 버튼 줄 아래로 세로 배치 */
   .topbar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
-  .brand { padding-right: 0; }
+  .brand { max-width: none; padding-right: 0; }
   .brand h1 { font-size: 15px; }
   .brand .sub { font-size: 10.5px; }
   .top-actions { justify-content: flex-start; }
