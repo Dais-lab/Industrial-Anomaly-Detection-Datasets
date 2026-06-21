@@ -195,9 +195,12 @@ function buildActiveFilters() {
 }
 
 /* ---------------- 렌더: 결과 ---------------- */
-function chipList(vals, dim) {
+function chipList(vals, dim, max) {
   const box = el("div", "cell-chips");
-  asArray(vals).forEach(v => box.appendChild(el("span", "chip" + (dim ? " dim" : ""), v)));
+  const arr = asArray(vals);
+  const shown = (max && arr.length > max) ? arr.slice(0, max) : arr;
+  shown.forEach(v => box.appendChild(el("span", "chip" + (dim ? " dim" : ""), v)));
+  if (max && arr.length > max) box.appendChild(el("span", "chip more", "+" + (arr.length - max)));
   if (!box.children.length) box.appendChild(el("span", "chip dim", "—"));
   return box;
 }
@@ -214,9 +217,9 @@ function renderTable(rows) {
     tr.onclick = () => openModal(d);
     COLUMNS.forEach(c => {
       const td = el("td");
-      if (c.type === "name") { td.className = "name"; td.textContent = d.Name; }
+      if (c.type === "name") { td.className = "name"; td.appendChild(el("span", "ds-name", d.Name)); }
       else if (c.type === "num") { td.className = "num"; td.textContent = fmtNum(d[c.key]); }
-      else if (c.type === "chips") td.appendChild(chipList(d[c.key]));
+      else if (c.type === "chips") td.appendChild(chipList(d[c.key], false, 3));
       else td.textContent = d[c.key] || "—";
       tr.appendChild(td);
     });

@@ -34,6 +34,8 @@ Temporary Items
 ### Project ###
 __pycache__/
 *.pyc
+# 로컬 디자인 프리뷰 (배포 대상 아님 — build_standalone.py preview.html 산출물)
+preview.html
 # 로컬 노션 내보내기 원본(레포에는 data-source/ 의 CSV만 둠)
 개인 페이지 & 공유된 페이지/
 DatasetsDB.zip
