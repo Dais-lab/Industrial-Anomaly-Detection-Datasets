@@ -1,0 +1,23 @@
+# ===========================================================
+#  CODEOWNERS — 데이터/소스 변경 시 '연구실 멤버 검토'를 강제
+#  (브랜치 보호 규칙의 "Require review from Code Owners" 와 함께 동작)
+#
+#  현재 코드오너: @junhyeong7788 (저장소 admin)
+#  멤버를 추가하려면 공백으로 나열: 예) @junhyeong7788 @another-member
+#  팀으로 묶으려면: @Dais-lab/<팀슬러그>  (그 팀은 저장소 Write 이상 권한 필요)
+# ===========================================================
+
+# 데이터 정본 — 무조건 멤버 검토
+/web/data.js         @junhyeong7788
+
+# 제출 폴더(외부 기여 PR이 들어오는 곳) — 멤버 검토
+/submissions/        @junhyeong7788
+
+# 데이터 원본 CSV / 변환·빌드 스크립트 / 앱 소스 — 멤버 검토
+/data-source/        @junhyeong7788
+/convert.py          @junhyeong7788
+/build_standalone.py @junhyeong7788
+/web/                @junhyeong7788
+
+# 그 외 모든 파일 (catch-all) — 멤버 검토
+*                    @junhyeong7788

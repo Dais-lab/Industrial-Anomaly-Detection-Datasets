@@ -1,0 +1,42 @@
+name: Deploy site to GitHub Pages
+
+# main 에 데이터/앱 변경이 머지되면: convert.py 로 data.js 재생성(submissions 병합) → web/ 배포
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "data-source/**"
+      - "submissions/**"
+      - "convert.py"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Build web/data.js (CSV + submissions 병합)
+        run: python convert.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deploy
+        uses: actions/deploy-pages@v4

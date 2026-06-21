@@ -1,106 +1,64 @@
 # Industrial Anomaly Detection Datasets
 
-This repository systematically organizes popular datasets for research and benchmarking, with a primary focus on Anomaly Detection in the industrial vision domain.
+자동차 부품 제조 특화 이미지 결함탐지 AI모델 학습을 위한 **데이터셋 분류체계** ·
+*Data Taxonomy for Automotive-Parts Manufacturing Defect-Detection AI*
 
-- "The main focus is on images from automotive manufacturing processes."
+> **🔗 Live site:** https://dais-lab.github.io/Industrial-Anomaly-Detection-Datasets/
+> (Settings → Pages 활성화 후 동작 — 아래 *Deploy* 참고)
 
-## Table of Contents
+산업 비전 결함/이상탐지(Anomaly Detection) 데이터셋을 체계적으로 정리·검색하는 인터랙티브 카탈로그.
+University of Ulsan · Data analytics and intelligent Systems · **DaiS Lab**.
 
-- [Scope](#scope)
-- [Quick Contribution Guide](#quick-contribution-guide)
-- [Tag/Notation Rules](#tagnotation-rules)
-- [Domain-specific Catalog](#domain-specific-catalog)
-  - [Press](#press)
-  - [Body/Welding](#bodywelding)
-  - [Painting](#painting)
-  - [Assembly](#assembly)
-- [Related Repos/Resources](#related-reposresources)
-- [License](#license)
+## ✨ 기능
 
-## Quick Contribution Guide
+- 컬럼별 패싯 필터(산업 분야·태스크·결함 범주·모달리티·소재·어노테이션·공정·출처·차원·라이선스), 멀티선택 + 동적 카운트
+- 텍스트 검색 / 정렬 / 표·카드 뷰 / 상세 모달 / 통계 분포 / 필터 결과 CSV 내보내기
+- **데이터셋 추가 폼** + GitHub PR 제출 (아래 *Contributing*)
+- Apple *Liquid Glass* 디자인, 다크/라이트 테마
 
-1. Make sure the dataset is publicly available (download link or application process).
-2. Add a row to the appropriate section using the table template below.
-3. Prefer official pages/author distribution sites for links whenever possible.
-4. Indicate the license/usage terms if specified.
+## 📁 구조
 
-Table row template for adding new datasets (copy and fill in the values):
-
-```markdown
-| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Representative Model | Image AUC | Image AP | Pixel AUC | Pixel AP | Pixel PRO | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
-| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | -------------------- | --------- | -------- | --------- | -------- | --------- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
-| -    | -      | -        | -           | -    | -          | -     | -      | -      | -                    | -         | -        | -         | -        | -         | -          | -          | -          | -         | -               | -                | -        | -              | -    | -       | -    | -          |
+```
+.
+├─ web/                 # 사이트 (GitHub Pages 배포 대상) — index.html / styles.css / app.js / data.js
+├─ data-source/         # 데이터 정본 CSV (Notion DB 내보내기)
+├─ submissions/         # 폼 'PR 제출'이 모이는 곳 (<이름>.json)
+├─ dataset-cards/       # 데이터셋별 상세·모델 벤치마크 카드 (예: MVTec AD)
+├─ convert.py           # CSV + submissions/*.json → web/data.js 생성
+├─ build_standalone.py  # 단일 파일(standalone.html) 빌드
+├─ standalone.html      # 의존성 없는 단일 HTML (파일 하나로 공유 가능)
+├─ docs/                # legacy-catalog-README.md (이전 마크다운 카탈로그 보존)
+└─ .github/             # CODEOWNERS · PR 템플릿 · Pages 배포 워크플로
 ```
 
-Field Guide :
+## 🤝 Contributing (데이터셋 추가)
 
-- Name: Official dataset name
-- Domain: Manufacturing process/domain (Press, Body/Welding, Painting, Assembly, etc.)
-- Modality: RGB, Grayscale, Video, Depth, 3D, Multi, etc.
-- Defect Type: Surface/structural categories (e.g., scratch, LP, PO, CR)
-- Task: AD(img), AD(pixel), Seg, Cls, Det (comma-separated if multiple)
-- Annotation: Img-level, Pix-level, Box-level (available supervision granularity)
-- Scale: Total/Normal/Defect image counts (use official numbers if available)
-- Representative Model: Best baseline/representative model (e.g., PatchCore (CNN), ResNet50, EfficientAD-M)
-- Image AUC / Image AP: Requires image-level GT labels; report per protocol (per-class vs overall)
-- Pixel AUC / Pixel AP / Pixel PRO: Requires pixel-level GT masks; PRO = area under per-region overlap curve
-- Params (M): Number of parameters in millions
-- Input Size: Evaluation input resolution (e.g., 256×256)
-- Batch Size: Evaluation batch size for the reported numbers
-- VRAM (GB): Peak GPU memory during inference (specify context if training)
-- Inference (FPS): Single-GPU throughput; specify input size and batch size
-- Train time/epoch: Time per epoch; specify dataset scope and epochs
-- Hardware: GPU model (e.g., A6000, 4090), CPU if relevant
-- Precision Type: FP32, FP16, Mixed (FP16/32)
-- Year: Publication/release year
-- License: MIT, CC-BY, research use, restricted, etc.
-- Link: Official distribution page preferred
-- Paper/Page: Official paper or documentation link
+1. 사이트 우상단 **"+ 데이터셋 추가"** → 폼 작성 → **"GitHub에 PR로 제출"**
+   - `submissions/<이름>.json` 새 파일을 만드는 PR이 생성됩니다(협력자가 아니면 자동 fork→PR).
+2. **연구실 멤버(Code Owner) 검토 → 머지**
+3. 머지되면 Pages 워크플로가 `convert.py`(submissions 병합)를 돌려 **사이트가 자동 갱신**됩니다.
 
-## Tag/Notation Rules
+> 즉 *누구나 제출 가능, 반영은 멤버 승인 후*. (`main` 은 브랜치 보호로 PR·승인 필수)
 
-- Modality: [RGB], [Gray], [Video], [Depth], [3D], [Multi]
-- Task: [AD(img)] image-level anomaly detection, [AD(pixel)] pixel-level anomaly localization, [Seg], [Cls], [Det]
-- Annotation: [Img-level], [Pix-level], [Box-level]
-- Precision Type: [FP32], [FP16], [Mixed(FP16/32)]
-- Units/Conventions:
-  - Params in millions (M), VRAM in GB, FPS as single-GPU throughput
-  - Input Size as WxH (e.g., 256×256), clearly state batch size
-- Reporting protocol (must state in Notes or README):
-  - Per-class vs overall averaging, image-level vs pixel-level metrics
-  - Dataset split (official/paper split), input resolution, post-processing
-- Link priority: Official site > Official GitHub/author page > Public mirror
+## 🛠 로컬 개발
 
-## Domain-specific Catalog
+```bash
+python3 convert.py                 # data-source CSV(+submissions) → web/data.js
+python3 build_standalone.py        # standalone.html 갱신
+cd web && python3 -m http.server 8000   # http://localhost:8000
+```
+의존성 없음(Python 표준 라이브러리 + 바닐라 JS).
 
-### Press
+## 🚀 Deploy (최초 1회)
 
-| Name    | Domain        | Modality | Defect Type                  | Task | Annotation | Total | Normal | Defect | Representative Model | Image AUC | Image AP | Pixel AUC | Pixel AP | Pixel PRO | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License          | Link                                                                                                                                                                           | Paper/Page                                                                                                                                            |
-| ------- | ------------- | -------- | ----------------------------- | ---- | ---------- | ----- | ------ | ------ | -------------------- | --------- | -------- | --------- | -------- | --------- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| NEU-CLS | Surface/Metal | Gray     | RS, Pa, Cr, PS, In, Sc        | Cls  | Img-level  | 1,800 | 0      | 1,800 | -                    | -         | -        | -         | -        | -         | -          | 200×200   | -         | -         | -               | -                | -       | -              | 2013 | Citation required | [Official page](http://faculty.neu.edu.cn/songkechen/zh_CN/zhym/263269/list/index.htm)                                                                 | [Applied Surface Science 2013](https://doi.org/10.1016/j.apsusc.2013.06.086)                                                                         |
+Settings → **Pages → Build and deployment → Source: GitHub Actions** 로 설정하면,
+이후 `main` 머지 시 `.github/workflows/pages.yml` 가 자동 배포합니다.
 
-### Body/Welding
+## 🔒 데이터 정본 갱신 (노션 → CSV)
 
-| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Representative Model | Image AUC | Image AP | Pixel AUC | Pixel AP | Pixel PRO | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
-| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | -------------------- | --------- | -------- | --------- | -------- | --------- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
-| RIAWELC | Surface/metal | Gray | LP, PO, CR  | AD, Cls | Img-level  | 24,407 | 6,000 | 18,707 | -                    | -         | -        | -         | -        | -         | -          | 227×227          | -          | -         | -               | -                | -        | -              | 2022 | citation required | [GitHub](https://github.com/stefyste/RIAWELC) | [1] [ICMECE 2022](https://www.researchgate.net/publication/369294451_RIAWELC_A_Novel_Dataset_of_Radiographic_Images_for_Automatic_Weld_Defects_Classification) <br> [2] [Manufacturing Letters (Elsevier)](https://www.researchgate.net/publication/366209086_Welding_Defects_Classification_Through_a_Convolutional_Neural_Network) |
+대량 갱신은 Notion `Datasets DB` 에서 작업 후 CSV로 내보내 `data-source/` 의 CSV를 교체하고
+`convert.py` 를 돌립니다. (행별 본문 설명까지 옮기려면 Notion "Markdown & CSV (하위 페이지 포함)" 내보내기)
 
-### Painting
+## 📄 License / Data
 
-| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Representative Model | Image AUC | Image AP | Pixel AUC | Pixel AP | Pixel PRO | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
-| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | -------------------- | --------- | -------- | --------- | -------- | --------- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
-| -    | -      | -        | -           | -    | -          | -     | -      | -      | -                    | -         | -        | -         | -        | -         | -          | -          | -          | -         | -               | -                | -        | -              | -    | -       | -    | -          |
-
-### Assembly
-
-| Name | Domain | Modality | Defect Type | Task | Annotation | Total | Normal | Defect | Representative Model | Image AUC | Image AP | Pixel AUC | Pixel AP | Pixel PRO | Params (M) | Input Size | Batch Size | VRAM (GB) | Inference (FPS) | Train time/epoch | Hardware | Precision Type | Year | License | Link | Paper/Page |
-| ---- | ------ | -------- | ----------- | ---- | ---------- | ----- | ------ | ------ | -------------------- | --------- | -------- | --------- | -------- | --------- | ---------- | ---------- | ---------- | --------- | --------------- | ---------------- | -------- | -------------- | ---- | ------- | ---- | ---------- |
-| -    | -      | -        | -           | -    | -          | -     | -      | -      | -                    | -         | -        | -         | -        | -         | -          | -          | -          | -         | -               | -                | -        | -              | -    | -       | -    | -          |
-
-## Related Repos/Resources
-
-- Benchmarks/Leaderboards: Refer to each dataset's official page and paper
-
-## License
-
-Metadata in this repository welcomes open contributions. The copyright/license of each dataset follows its respective provider.
+각 데이터셋의 라이선스는 카탈로그의 *License* 항목 참조. 데이터셋 원본 권리는 각 제공처에 있습니다.
