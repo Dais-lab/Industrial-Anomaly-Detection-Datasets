@@ -1,0 +1,5810 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>자동차 부품 제조 결함탐지 데이터 분류체계 · DaiS Lab</title>
+  <meta name="description" content="자동차 부품 제조 특화 이미지 결함탐지 AI모델 학습을 위한 데이터 분류체계" />
+  <style>
+/* ============================================================
+ *  Liquid Glass 디자인 시스템
+ *  - 반투명 유리(blur+saturate) + 스페큘러 테두리 + 깊이 그림자
+ *  - 컬러풀 오로라 배경 위에서 굴절감이 살아남
+ *  - 굴절(SVG displacement)은 Chromium 한정 .refraction 으로 점진 향상
+ * ============================================================ */
+
+/* ---------------- 테마 토큰 ---------------- */
+:root {
+  --text: #161d2b;
+  --text-dim: #5d6678;
+  --accent: #3b6cff;
+  --accent-2: #9b5cff;
+  --accent-soft: rgba(59, 108, 255, .14);
+
+  /* 유리 재질 */
+  --glass-bg: rgba(255, 255, 255, .55);
+  --glass-bg-strong: rgba(255, 255, 255, .72);
+  --glass-brd: rgba(255, 255, 255, .55);
+  --glass-rim: rgba(255, 255, 255, .9);      /* 상단 스페큘러 */
+  --glass-shadow: 0 12px 36px rgba(28, 40, 90, .14);
+  --glass-shadow-lg: 0 24px 70px rgba(28, 40, 90, .22);
+  --blur: 20px;
+  --sat: 180%;
+
+  /* 칩/제어 */
+  --chip-bg: rgba(255, 255, 255, .5);
+  --chip-brd: rgba(255, 255, 255, .65);
+  --chip-text: #3a4458;
+  --control-bg: rgba(255, 255, 255, .45);
+
+  --radius: 18px;
+  --radius-sm: 12px;
+  --radius-pill: 999px;
+
+  /* 배경 그라데이션 베이스 */
+  --bg-base: #eaf0fb;
+}
+
+[data-theme="dark"] {
+  --text: #eaf1fb;
+  --text-dim: #a3b0c4;
+  --accent: #6f9bff;
+  --accent-2: #b98cff;
+  --accent-soft: rgba(111, 155, 255, .18);
+
+  --glass-bg: rgba(255, 255, 255, .07);
+  --glass-bg-strong: rgba(28, 36, 52, .55);
+  --glass-brd: rgba(255, 255, 255, .14);
+  --glass-rim: rgba(255, 255, 255, .22);
+  --glass-shadow: 0 14px 40px rgba(0, 0, 0, .5);
+  --glass-shadow-lg: 0 28px 80px rgba(0, 0, 0, .6);
+  --blur: 22px;
+  --sat: 160%;
+
+  --chip-bg: rgba(255, 255, 255, .08);
+  --chip-brd: rgba(255, 255, 255, .16);
+  --chip-text: #cdd8e8;
+  --control-bg: rgba(255, 255, 255, .06);
+
+  --bg-base: #070b14;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  color: var(--text);
+  background: var(--bg-base);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+               "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; cursor: pointer; color: inherit; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.hidden { display: none !important; }
+.svg-defs { position: absolute; width: 0; height: 0; pointer-events: none; }
+
+/* ---------------- 오로라 배경 ---------------- */
+.bg-aurora {
+  position: fixed; inset: 0; z-index: -2; overflow: hidden;
+  background:
+    radial-gradient(120% 120% at 80% 0%, #dfe9ff 0%, transparent 55%),
+    radial-gradient(120% 120% at 0% 100%, #ffe6f3 0%, transparent 55%),
+    var(--bg-base);
+}
+[data-theme="dark"] .bg-aurora {
+  background:
+    radial-gradient(120% 120% at 80% 0%, #16224a 0%, transparent 55%),
+    radial-gradient(120% 120% at 0% 100%, #2a1340 0%, transparent 55%),
+    var(--bg-base);
+}
+.blob {
+  position: absolute; border-radius: 50%; filter: blur(60px);
+  opacity: .55; mix-blend-mode: normal; will-change: transform;
+}
+[data-theme="dark"] .blob { opacity: .45; filter: blur(70px); }
+.blob.b1 { width: 46vw; height: 46vw; left: -8vw; top: -10vw;  background: radial-gradient(circle, #6f9bff, transparent 70%); animation: drift1 26s ease-in-out infinite; }
+.blob.b2 { width: 40vw; height: 40vw; right: -6vw; top: 4vh;   background: radial-gradient(circle, #b98cff, transparent 70%); animation: drift2 32s ease-in-out infinite; }
+.blob.b3 { width: 42vw; height: 42vw; left: 18vw; bottom: -14vw; background: radial-gradient(circle, #4fd6c8, transparent 70%); animation: drift3 30s ease-in-out infinite; }
+.blob.b4 { width: 36vw; height: 36vw; right: 8vw; bottom: -8vw; background: radial-gradient(circle, #ff8fc8, transparent 70%); animation: drift1 36s ease-in-out infinite reverse; }
+.bg-grain {
+  position: absolute; inset: 0; opacity: .035; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@keyframes drift1 { 0%,100%{ transform: translate(0,0) scale(1);} 50%{ transform: translate(6vw,4vh) scale(1.08);} }
+@keyframes drift2 { 0%,100%{ transform: translate(0,0) scale(1);} 50%{ transform: translate(-5vw,5vh) scale(1.1);} }
+@keyframes drift3 { 0%,100%{ transform: translate(0,0) scale(1);} 50%{ transform: translate(4vw,-5vh) scale(1.06);} }
+
+/* ---------------- 유리 유틸 (재사용) ---------------- */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  border: 1px solid var(--glass-brd);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-rim), inset 0 0 0 1px rgba(255,255,255,.04);
+}
+/* Chromium 한정 굴절 향상 */
+.refraction .topbar,
+.refraction .sidebar,
+.refraction .stats,
+.refraction .table-wrap,
+.refraction .card,
+.refraction .modal-panel {
+  backdrop-filter: blur(var(--blur)) saturate(var(--sat)) url(#glass-refraction);
+}
+
+/* ---------------- 상단바 ---------------- */
+.topbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 22px;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  border-bottom: 1px solid var(--glass-brd);
+  box-shadow: 0 6px 24px rgba(28,40,90,.08), inset 0 1px 0 var(--glass-rim);
+}
+.brand { min-width: 0; padding-right: 16px; }
+.brand h1 { margin: 0; font-size: 16px; letter-spacing: -.2px; font-weight: 700; line-height: 1.3; }
+.brand .sub { font-size: 11px; color: var(--text-dim); letter-spacing: .2px; }
+.top-actions { display: flex; align-items: center; gap: 8px; }
+
+.badge {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff; font-weight: 700; padding: 6px 13px; border-radius: var(--radius-pill);
+  font-size: 12.5px; font-variant-numeric: tabular-nums;
+  box-shadow: 0 4px 14px rgba(59,108,255,.35), inset 0 1px 0 rgba(255,255,255,.4);
+}
+
+/* 유리 버튼 */
+.ghost {
+  background: var(--control-bg);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  backdrop-filter: blur(8px) saturate(160%);
+  border: 1px solid var(--glass-brd);
+  padding: 7px 13px; border-radius: var(--radius-sm); font-size: 13px;
+  box-shadow: inset 0 1px 0 var(--glass-rim), 0 2px 8px rgba(28,40,90,.08);
+  transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
+}
+.ghost:hover { background: var(--glass-bg-strong); transform: translateY(-1px); }
+.ghost:active { transform: translateY(0); }
+.ghost.icon { padding: 7px 10px; }
+
+/* ---------------- 통계 패널 ---------------- */
+.stats {
+  margin: 14px 22px 0; padding: 18px 20px; border-radius: var(--radius);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  border: 1px solid var(--glass-brd);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-rim);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;
+}
+.stat-card h3 { margin: 0 0 10px; font-size: 12.5px; color: var(--text-dim); font-weight: 700; }
+.bar-row { display: grid; grid-template-columns: 96px 1fr 34px; gap: 8px; align-items: center; margin: 4px 0; }
+.bar-row .lbl { font-size: 11.5px; color: var(--text-dim); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { background: var(--control-bg); border-radius: var(--radius-pill); height: 13px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.12); }
+.bar-fill { height: 100%; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--accent), var(--accent-2)); box-shadow: 0 0 10px rgba(59,108,255,.4); }
+.bar-row .val { font-size: 11.5px; font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ---------------- 레이아웃 ---------------- */
+.layout { display: grid; grid-template-columns: 290px 1fr; align-items: start; gap: 18px; padding: 18px 22px; }
+.sidebar {
+  position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto;
+  padding: 16px; border-radius: var(--radius);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  border: 1px solid var(--glass-brd);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-rim);
+}
+.sidebar::-webkit-scrollbar { width: 8px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--chip-brd); border-radius: 8px; }
+.content { min-width: 0; }
+
+/* ---------------- 검색 / 사이드바 ---------------- */
+.search-wrap input {
+  width: 100%; padding: 11px 14px; border: 1px solid var(--glass-brd);
+  border-radius: var(--radius-sm); background: var(--control-bg); color: var(--text); font-size: 13.5px;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.06);
+}
+.search-wrap input::placeholder { color: var(--text-dim); }
+.search-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+.bool-filters { display: flex; flex-wrap: wrap; gap: 7px; margin: 14px 0; }
+.tristate {
+  display: inline-flex; align-items: stretch; border-radius: var(--radius-sm); overflow: hidden;
+  border: 1px solid var(--glass-brd); background: var(--control-bg);
+  box-shadow: inset 0 1px 0 var(--glass-rim);
+}
+.tristate > span { font-size: 11px; color: var(--text-dim); padding: 5px 8px; display: flex; align-items: center; border-right: 1px solid var(--glass-brd); }
+.tristate button { border: 0; background: transparent; padding: 5px 9px; font-size: 11.5px; color: var(--text-dim); border-right: 1px solid var(--glass-brd); transition: background .15s; }
+.tristate button:last-child { border-right: 0; }
+.tristate button:hover { background: var(--glass-bg-strong); }
+.tristate button.on { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.4); }
+
+.facet { border-top: 1px solid var(--glass-brd); padding: 11px 0; }
+.facet > summary { cursor: pointer; font-weight: 700; font-size: 13px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+.facet > summary::-webkit-details-marker { display: none; }
+.facet > summary .chev { color: var(--text-dim); font-size: 11px; transition: transform .15s; }
+.facet[open] > summary .chev { transform: rotate(90deg); }
+.facet .opts { margin-top: 9px; display: flex; flex-direction: column; gap: 2px; }
+.opt { display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 4px 6px; border-radius: 8px; cursor: pointer; transition: background .12s; }
+.opt:hover { background: var(--glass-bg-strong); }
+/* 둥근 유리 체크박스 */
+.opt input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none; margin: 0;
+  width: 19px; height: 19px; flex: 0 0 19px; border-radius: 7px;
+  border: 1px solid var(--chip-brd); background: var(--control-bg);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  box-shadow: inset 0 1px 0 var(--glass-rim);
+  display: inline-grid; place-content: center; cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .1s ease;
+}
+.opt input[type="checkbox"]:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--chip-brd)); }
+.opt input[type="checkbox"]::after {
+  content: ""; width: 5px; height: 9px; margin-top: -2px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg) scale(0);
+  transition: transform .14s cubic-bezier(.2,.8,.3,1.4);
+}
+.opt input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-color: transparent; box-shadow: 0 2px 8px rgba(59,108,255,.4), inset 0 1px 0 rgba(255,255,255,.4);
+}
+.opt input[type="checkbox"]:checked::after { transform: rotate(45deg) scale(1); }
+.opt input[type="checkbox"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.opt .oc { margin-left: auto; color: var(--text-dim); font-size: 11px; font-variant-numeric: tabular-nums; background: var(--chip-bg); padding: 1px 7px; border-radius: var(--radius-pill); }
+.opt.zero { opacity: .4; }
+.more { background: none; border: 0; color: var(--accent); font-size: 12px; padding: 5px 6px; text-align: left; font-weight: 600; }
+.reset {
+  width: 100%; margin-top: 16px; padding: 10px; border: 1px solid var(--glass-brd);
+  background: var(--control-bg); color: var(--text); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600;
+  box-shadow: inset 0 1px 0 var(--glass-rim); transition: background .15s;
+}
+.reset:hover { background: var(--glass-bg-strong); }
+
+/* ---------------- 툴바 ---------------- */
+.toolbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.result-info { font-size: 13px; color: var(--text-dim); font-weight: 600; }
+.active-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.afilter {
+  background: var(--accent-soft); color: var(--accent); font-size: 11.5px; padding: 4px 10px;
+  border-radius: var(--radius-pill); display: inline-flex; gap: 5px; align-items: center; cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); transition: filter .15s;
+}
+.afilter b { font-weight: 700; }
+.afilter:hover { filter: brightness(.95); }
+.toolbar-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sort { font-size: 12.5px; color: var(--text-dim); display: flex; align-items: center; gap: 7px; }
+.sort select {
+  padding: 7px 10px; border: 1px solid var(--glass-brd); border-radius: var(--radius-sm);
+  background: var(--control-bg); color: var(--text); font-size: 12.5px;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.view-toggle {
+  display: inline-flex; border-radius: var(--radius-sm); overflow: hidden;
+  border: 1px solid var(--glass-brd); background: var(--control-bg);
+  box-shadow: inset 0 1px 0 var(--glass-rim);
+}
+.view-toggle button { border: 0; background: transparent; padding: 7px 14px; font-size: 12.5px; color: var(--text-dim); transition: background .15s; }
+.view-toggle button.active { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.4); }
+
+/* ---------------- 표 ---------------- */
+.table-wrap {
+  overflow-x: auto; border-radius: var(--radius);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  border: 1px solid var(--glass-brd);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-rim);
+}
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+thead th {
+  text-align: left; padding: 12px 14px; color: var(--text-dim); font-weight: 700; white-space: nowrap;
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--glass-brd); position: sticky; top: 0; z-index: 1;
+}
+tbody td { padding: 11px 14px; border-bottom: 1px solid color-mix(in srgb, var(--glass-brd) 60%, transparent); vertical-align: top; }
+tbody tr { cursor: pointer; transition: background .12s; }
+tbody tr:hover { background: var(--glass-bg-strong); }
+tbody tr:last-child td { border-bottom: 0; }
+td.name { font-weight: 700; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.cell-chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 280px; }
+
+/* ---------------- 칩 ---------------- */
+.chip {
+  background: var(--chip-bg); color: var(--chip-text); font-size: 11px; padding: 3px 9px;
+  border-radius: var(--radius-pill); white-space: nowrap; border: 1px solid var(--chip-brd);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.chip.dim { opacity: .85; }
+
+/* ---------------- 카드 ---------------- */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+.card {
+  position: relative; overflow: hidden; padding: 16px; border-radius: var(--radius); cursor: pointer;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  border: 1px solid var(--glass-brd);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-rim);
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+/* 포인터 추종 스페큘러 (JS가 --mx/--my 설정) */
+.card::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .2s;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%), rgba(255,255,255,.5), transparent 60%);
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--glass-shadow-lg), inset 0 1px 0 var(--glass-rim); border-color: color-mix(in srgb, var(--accent) 40%, var(--glass-brd)); }
+.card:hover::before { opacity: 1; }
+.card h3 { margin: 0 0 4px; font-size: 15.5px; font-weight: 700; }
+.card .meta { font-size: 11.5px; color: var(--text-dim); margin-bottom: 11px; }
+.card .row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.card .stat { display: flex; gap: 16px; font-size: 12px; color: var(--text-dim); margin-top: 10px; border-top: 1px solid var(--glass-brd); padding-top: 10px; }
+.card .stat b { color: var(--text); font-variant-numeric: tabular-nums; }
+
+.empty {
+  text-align: center; padding: 70px 20px; color: var(--text-dim); border-radius: var(--radius);
+  background: var(--glass-bg); border: 1px solid var(--glass-brd);
+  -webkit-backdrop-filter: blur(var(--blur)); backdrop-filter: blur(var(--blur));
+}
+
+/* ---------------- 모달 ---------------- */
+.modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(8,12,22,.45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.modal-panel {
+  position: relative; border-radius: 24px; max-width: 780px; width: 100%; max-height: 86vh; overflow-y: auto; padding: 24px 26px;
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(30px) saturate(190%); backdrop-filter: blur(30px) saturate(190%);
+  border: 1px solid var(--glass-brd);
+  box-shadow: var(--glass-shadow-lg), inset 0 1px 0 var(--glass-rim);
+}
+.modal-panel h2 { margin: 0 0 2px; font-size: 21px; font-weight: 700; }
+.modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+.modal-head .meta { font-size: 12px; color: var(--text-dim); }
+.modal-close { border: 1px solid var(--glass-brd); background: var(--control-bg); border-radius: var(--radius-pill); width: 34px; height: 34px; font-size: 16px; color: var(--text-dim); box-shadow: inset 0 1px 0 var(--glass-rim); }
+.modal-close:hover { background: var(--glass-bg-strong); }
+/* 핵심 지표 타일 */
+.stat-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin: 4px 0 22px; }
+.stat-tile {
+  padding: 14px 14px 12px; border-radius: var(--radius-sm); text-align: left;
+  background: var(--control-bg); border: 1px solid var(--glass-brd);
+  box-shadow: inset 0 1px 0 var(--glass-rim);
+}
+.stat-tile .st-val { font-size: 21px; font-weight: 700; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+.stat-tile .st-lbl { font-size: 11.5px; color: var(--text-dim); margin-top: 3px; }
+
+/* 그룹 섹션 */
+.modal-section { margin-top: 22px; }
+.modal-section + .modal-section { padding-top: 20px; border-top: 1px solid var(--glass-brd); }
+.ms-title { margin: 0 0 14px; font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--accent); }
+
+.dl { display: grid; grid-template-columns: 132px 1fr; gap: 14px 20px; align-items: start; }
+.dl dt { color: var(--text-dim); font-size: 12.5px; padding-top: 2px; }
+.dl dd { margin: 0; font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.modal-desc { margin: 16px 0 4px; padding: 14px; background: var(--control-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius-sm); font-size: 13px; color: var(--text-dim); }
+.modal-link {
+  display: inline-block; margin-top: 18px; color: #fff; padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 6px 18px rgba(59,108,255,.4), inset 0 1px 0 rgba(255,255,255,.4);
+}
+.modal-link:hover { text-decoration: none; filter: brightness(1.06); }
+
+/* ---------------- 푸터 ---------------- */
+.foot { margin: 4px 22px 22px; padding: 16px 20px; color: var(--text-dim); font-size: 12px; border-radius: var(--radius); background: var(--glass-bg); border: 1px solid var(--glass-brd); -webkit-backdrop-filter: blur(var(--blur)); backdrop-filter: blur(var(--blur)); box-shadow: inset 0 1px 0 var(--glass-rim); }
+
+/* ---------------- 추가 버튼 & 폼 ---------------- */
+.ghost.primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent;
+  font-weight: 600; box-shadow: 0 4px 14px rgba(59,108,255,.35), inset 0 1px 0 rgba(255,255,255,.4);
+}
+.ghost.primary:hover { background: linear-gradient(135deg, var(--accent), var(--accent-2)); filter: brightness(1.06); }
+
+.add-note { font-size: 12.5px; color: var(--text-dim); background: var(--control-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius-sm); padding: 11px 13px; margin-bottom: 18px; line-height: 1.55; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field.wide { grid-column: 1 / -1; }
+.field label { font-size: 12px; color: var(--text-dim); font-weight: 600; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--glass-brd); border-radius: var(--radius-sm);
+  background: var(--control-bg); color: var(--text); font-size: 13px; font-family: inherit;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.field textarea { resize: vertical; }
+.sugg { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.sugg-chip { font-size: 10.5px; color: var(--chip-text); background: var(--chip-bg); border: 1px solid var(--chip-brd); border-radius: var(--radius-pill); padding: 2px 8px; }
+.sugg-chip:hover { border-color: var(--accent); color: var(--accent); }
+.add-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--glass-brd); }
+.add-actions .modal-link { margin-left: auto; }
+.add-status { margin-top: 12px; font-size: 12.5px; min-height: 16px; }
+.add-status.ok { color: #1f9d57; }
+.add-status.warn { color: #d9534f; }
+[data-theme="dark"] .add-status.ok { color: #4fd68a; }
+[data-theme="dark"] .add-status.warn { color: #ff8a82; }
+
+/* ---------------- 반응형 ---------------- */
+@media (max-width: 920px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; max-height: none; }
+}
+
+/* ---------------- 접근성 ---------------- */
+@media (prefers-reduced-motion: reduce) {
+  .blob { animation: none !important; }
+  * { transition: none !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass-bg: rgba(248,250,253,.96); --glass-bg-strong: rgba(255,255,255,.99); --control-bg: rgba(0,0,0,.04); --chip-bg: rgba(0,0,0,.05); }
+  [data-theme="dark"] { --glass-bg: rgba(20,26,38,.97); --glass-bg-strong: rgba(28,36,52,.99); --control-bg: rgba(255,255,255,.07); --chip-bg: rgba(255,255,255,.09); }
+  .topbar, .sidebar, .stats, .table-wrap, .card, .modal-panel, .ghost, .chip { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+}
+
+</style>
+</head>
+<body>
+  <!-- 유리가 굴절할 컬러풀한 배경 (오로라/메시 그라데이션) -->
+  <div class="bg-aurora" aria-hidden="true">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+    <span class="blob b4"></span>
+    <div class="bg-grain"></div>
+  </div>
+
+  <!-- Liquid Glass 굴절 필터 (Chromium에서만 .refraction 클래스 통해 적용) -->
+  <svg class="svg-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="glass-refraction" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.009 0.011" numOctaves="2" seed="11" result="noise" />
+        <feGaussianBlur in="noise" stdDeviation="2.2" result="softNoise" />
+        <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="22" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
+
+  <header class="topbar">
+    <div class="brand">
+      <h1>자동차 부품 제조 특화 이미지 결함탐지 AI모델 학습을 위한 데이터 분류체계</h1>
+      <span class="sub">Data Taxonomy for Automotive-Parts Manufacturing Defect-Detection AI</span>
+    </div>
+    <div class="top-actions">
+      <span id="count-badge" class="badge">— / —</span>
+      <button id="btn-add" class="ghost primary" type="button">+ 데이터셋 추가</button>
+      <button id="btn-stats" class="ghost" type="button">통계 ▾</button>
+      <button id="btn-export" class="ghost" type="button">결과 내보내기</button>
+      <button id="btn-theme" class="ghost icon" type="button" title="테마 전환">◐</button>
+    </div>
+  </header>
+
+  <section id="stats" class="stats hidden"></section>
+
+  <main class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="search-wrap">
+        <input id="search" type="search" placeholder="이름 · 결함 유형 검색…" autocomplete="off" />
+      </div>
+
+      <div class="bool-filters" id="bool-filters"></div>
+
+      <div class="facets" id="facets"></div>
+
+      <button id="btn-reset" class="reset" type="button">필터 초기화</button>
+    </aside>
+
+    <section class="content">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span id="result-info" class="result-info"></span>
+          <div id="active-filters" class="active-filters"></div>
+        </div>
+        <div class="toolbar-right">
+          <label class="sort">
+            정렬
+            <select id="sort"></select>
+            <button id="sort-dir" class="ghost icon" type="button" title="오름/내림차순">↓</button>
+          </label>
+          <div class="view-toggle" role="group" aria-label="보기 전환">
+            <button data-view="table" class="active" type="button">표</button>
+            <button data-view="card" type="button">카드</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="results"></div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel" id="modal-panel"></div>
+  </div>
+
+  <!-- 데이터셋 추가 폼 -->
+  <div id="add-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close-add></div>
+    <div class="modal-panel" id="add-panel"></div>
+  </div>
+
+  <footer class="foot">
+    <span>University of Ulsan · Data analytics and intelligent Systems · DaiS Lab</span>
+  </footer>
+
+  <script>
+// 자동 생성 파일 — convert.py 로 재생성. 직접 수정 금지.
+window.DATASETS = [
+ {
+  "Name": "NEU-CLS",
+  "AI based Defect Type": [
+   "Crazing",
+   "Inclusion",
+   "Patch",
+   "Pitted Surface",
+   "Rolled-in scale",
+   "Scratch"
+  ],
+  "AI based defect types count": null,
+  "Abnormal": 1800,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "",
+  "Class": 6,
+  "Created time": "2025년 9월 21일 오후 2:05",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "Steel"
+  ],
+  "Last edited time": "2025년 11월 24일 오후 7:16",
+  "License": "Citation required",
+  "Link": "http://faculty.neu.edu.cn/songkechen/zh_CN/zhym/263269/list/index.htm",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Multi-Classification"
+  ],
+  "Total": 1800,
+  "Year": 2013,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "MVTec AD",
+  "AI based Defect Type": [
+   "Contamination",
+   "Crack",
+   "Deformation",
+   "Missing",
+   "Print",
+   "Scratch"
+  ],
+  "AI based defect types count": 73,
+  "Abnormal": 1258,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 15,
+  "Created time": "2025년 9월 22일 오후 7:03",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 10일 오전 10:57",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://www.mvtec.com/company/research/datasets/mvtec-ad/downloads",
+  "Material Domain": [
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 4096,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Few-shot",
+   "Multi-Classification",
+   "Object-Detection",
+   "Segmentation",
+   "Zero-shot"
+  ],
+  "Total": 5354,
+  "Year": 2019,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "MVTec LOCO-AD",
+  "AI based Defect Type": [
+   "Assembly",
+   "Color",
+   "Contamination",
+   "Count",
+   "Dent",
+   "Missing",
+   "Print",
+   "Scratch"
+  ],
+  "AI based defect types count": null,
+  "Abnormal": 993,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Logical-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 5,
+  "Created time": "2025년 9월 22일 오후 7:03",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Logical Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 10일 오전 10:58",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://www.mvtec.com/company/research/datasets/mvtec-loco/downloads?utm_source=chatgpt.com",
+  "Material Domain": [
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 2347,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Few-shot",
+   "Multi-Classification",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 3340,
+  "Year": 2022,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "RIAWELC",
+  "AI based Defect Type": [
+   "Crazing",
+   "Lack of Penetration",
+   "Porosity"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": 18707,
+  "Annotation Format": [
+   "N/A"
+  ],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "",
+  "Class": 4,
+  "Created time": "2025년 9월 24일 오후 8:16",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "X-ray"
+  ],
+  "Industry Domain": [
+   "Heavy Industry"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:22",
+  "License": "Citation required",
+  "Link": "https://github.com/stefyste/RIAWELC",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 6000,
+  "Process Domain": [
+   "Nondestructive Testing"
+  ],
+  "Task": [
+   "AD",
+   "Multi-Classification"
+  ],
+  "Total": 24407,
+  "Year": 2022,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "MVTec 3D-AD",
+  "AI based Defect Type": [
+   "Contamination",
+   "Crack",
+   "Deformation",
+   "Missing",
+   "Scratch"
+  ],
+  "AI based defect types count": 41,
+  "Abnormal": 948,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 10,
+  "Created time": "2025년 9월 26일 오전 7:03",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "3D",
+  "Image Modality": [
+   "RGB-D"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 7일 오전 12:45",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://www.mvtec.com/company/research/datasets/mvtec-3d-ad",
+  "Material Domain": [
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 2904,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Few-shot",
+   "Multi-Classification",
+   "Object-Detection",
+   "Segmentation",
+   "Zero-shot"
+  ],
+  "Total": 3852,
+  "Year": 2021,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "VisA",
+  "AI based Defect Type": [
+   "Contamination",
+   "Crack",
+   "Missing",
+   "Scratch"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": 1200,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 12,
+  "Created time": "2025년 9월 30일 오전 7:54",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Logical Anomaly",
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "General"
+  ],
+  "Last edited time": "2025년 11월 10일 오전 11:03",
+  "License": "CC BY-NC 4.0",
+  "Link": "https://github.com/amazon-science/spot-diff",
+  "Material Domain": [
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 9621,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 10821,
+  "Year": 2022,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "PAD",
+  "AI based Defect Type": [
+   "Assembly",
+   "Count",
+   "Deformation",
+   "Missing"
+  ],
+  "AI based defect types count": 3,
+  "Abnormal": 4902,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 20,
+  "Created time": "2025년 9월 30일 오후 11:18",
+  "Data Source Type": "Synthetic",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 15일 오전 10:40",
+  "License": "MIT",
+  "Link": "https://github.com/EricLee0224/PAD",
+  "Material Domain": [
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 5231,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Multi-Classification",
+   "Segmentation"
+  ],
+  "Total": 10133,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "BTAD",
+  "AI based Defect Type": [
+   "Color",
+   "Contamination",
+   "Deformation",
+   "Dent",
+   "Scratch"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": 741,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 3,
+  "Created time": "2025년 10월 5일 오후 11:50",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 24일 오후 12:30",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://www.kaggle.com/datasets/thtuan/btad-beantech-anomaly-detection?select=BTech_Dataset_transformed",
+  "Material Domain": [
+   "Multi-material"
+  ],
+  "Model DB": [
+   "제목 없음 (https://app.notion.com/p/276b7e86a5bd80ca8a32caa49d059621?pvs=21)"
+  ],
+  "Normal": 1799,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 2540,
+  "Year": 2021,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "DAGM 2007",
+  "AI based Defect Type": [
+   "Anomalous Patterns",
+   "Contamination",
+   "Crack",
+   "Patch",
+   "Scratch",
+   "Texture"
+  ],
+  "AI based defect types count": 1,
+  "Abnormal": 2100,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 10,
+  "Created time": "2025년 10월 5일 오후 11:50",
+  "Data Source Type": "Synthetic",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "General"
+  ],
+  "Last edited time": "2025년 11월 7일 오전 12:48",
+  "License": "CC BY-NC 4.0",
+  "Link": "https://www.kaggle.com/datasets/mhskjelvareid/dagm-2007-competition-dataset-optical-inspection",
+  "Material Domain": [
+   "Texture"
+  ],
+  "Model DB": [],
+  "Normal": 14000,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 16100,
+  "Year": 2007,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "3CAD",
+  "AI based Defect Type": [
+   "Bubble",
+   "Coating",
+   "Crack",
+   "Damage",
+   "Dent",
+   "Discoloration",
+   "Scratch",
+   "Warping"
+  ],
+  "AI based defect types count": 47,
+  "Abnormal": 11462,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 8,
+  "Created time": "2025년 10월 10일 오후 8:09",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Electronics"
+  ],
+  "Last edited time": "2025년 11월 11일 오후 1:26",
+  "License": "Citation required, Non-commercial, Research-only",
+  "Link": "https://github.com/EnquanYang2022/3CAD/tree/main",
+  "Material Domain": [
+   "Aluminum"
+  ],
+  "Model DB": [],
+  "Normal": 15577,
+  "Process Domain": [
+   "Product Assembly"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 27039,
+  "Year": 2025,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "AITEX",
+  "AI based Defect Type": [
+   "Brokenend",
+   "Brokenpick",
+   "Brokenyarn",
+   "Contamination",
+   "Crease",
+   "Cutselvage",
+   "Fuzzyball",
+   "Knot",
+   "Nep",
+   "Warp Ball",
+   "Weft Crack",
+   "Weft Curling"
+  ],
+  "AI based defect types count": 12,
+  "Abnormal": 105,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 1,
+  "Created time": "2025년 10월 17일 오후 8:25",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Textile"
+  ],
+  "Last edited time": "2025년 11월 11일 오후 1:29",
+  "License": "CC-BY-4.0",
+  "Link": "https://www.kaggle.com/datasets/nexuswho/aitex-fabric-image-database",
+  "Material Domain": [
+   "Fabric"
+  ],
+  "Model DB": [],
+  "Normal": 140,
+  "Process Domain": [
+   "Fabric Production",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 245,
+  "Year": 2019,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Anomaly-ShapeNet",
+  "AI based Defect Type": [
+   "Bending",
+   "Broken",
+   "Bulge",
+   "Concavity",
+   "Hole",
+   "Scratch"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": null,
+  "Annotation Format": [],
+  "Annotation Level": [
+   "Point-level"
+  ],
+  "Automotive process": "",
+  "Class": 50,
+  "Created time": "2025년 10월 17일 오후 8:54",
+  "Data Source Type": "Synthetic",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "3D",
+  "Image Modality": [
+   "Point-cloud"
+  ],
+  "Industry Domain": [
+   "General"
+  ],
+  "Last edited time": "2025년 11월 11일 오후 1:30",
+  "License": "CC BY-NC 4.0",
+  "Link": "https://github.com/Chopper-233/Anomaly-ShapeNet",
+  "Material Domain": [
+   "N/A"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "3D Modeling"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 1600,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "DEEPPCB",
+  "AI based Defect Type": [
+   "Lack of Penetration",
+   "Mousebite",
+   "Pin hole",
+   "Short",
+   "Spur",
+   "Spurious copper"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Object-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 1,
+  "Created time": "2025년 10월 18일 오후 3:01",
+  "Data Source Type": "Synthetic",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Electronics"
+  ],
+  "Last edited time": "2025년 11월 11일 오후 1:34",
+  "License": "MIT",
+  "Link": "https://github.com/tangsanli5201/DeepPCB",
+  "Material Domain": [
+   "PCB"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "PCB Inspection",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Object-Detection"
+  ],
+  "Total": 1500,
+  "Year": 2019,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "DTD-Synthetic",
+  "AI based Defect Type": [
+   "Bending",
+   "Color",
+   "Line"
+  ],
+  "AI based defect types count": 5,
+  "Abnormal": null,
+  "Annotation Format": [
+   "N/A"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 12,
+  "Created time": "2025년 10월 18일 오후 3:07",
+  "Data Source Type": "Synthetic",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "General",
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 11일 오후 1:40",
+  "License": "Research-only",
+  "Link": "https://openaccess.thecvf.com/content/WACV2023/html/Aota_Zero-Shot_Versus_Many-Shot_Unsupervised_Texture_Anomaly_Detection_WACV_2023_paper.html",
+  "Material Domain": [
+   "Texture"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "N/A"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": null,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Eyecandies",
+  "AI based Defect Type": [
+   "Self-occlusion",
+   "Texture",
+   "specularity"
+  ],
+  "AI based defect types count": null,
+  "Abnormal": 2250,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 10,
+  "Created time": "2025년 10월 18일 오후 3:39",
+  "Data Source Type": "Synthetic",
+  "Defect Category": [
+   "Internal Anomaly",
+   "Structural Anomaly"
+  ],
+  "Dimension": "3D",
+  "Image Modality": [
+   "RGB-D"
+  ],
+  "Industry Domain": [
+   "Food Processing"
+  ],
+  "Last edited time": "2025년 11월 12일 오후 1:31",
+  "License": "Research-only",
+  "Link": "https://eyecan-ai.github.io/eyecandies/#dataset",
+  "Material Domain": [
+   "Candies",
+   "Food"
+  ],
+  "Model DB": [],
+  "Normal": 13250,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 15500,
+  "Year": 2022,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Fabric Dataset",
+  "AI based Defect Type": [
+   "Brokenpick",
+   "Hole",
+   "Knot",
+   "Loose Pick",
+   "Miss Pick",
+   "Netting Multiple",
+   "Oil Warp",
+   "Thick Bar",
+   "Thin Bar"
+  ],
+  "AI based defect types count": null,
+  "Abnormal": 25,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 1,
+  "Created time": "2025년 10월 18일 오후 3:44",
+  "Data Source Type": "Synthetic",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Textile"
+  ],
+  "Last edited time": "2025년 11월 12일 오후 1:35",
+  "License": "N/A",
+  "Link": "https://hub.hku.hk/bitstream/10722/229176/1/content.pdf",
+  "Material Domain": [
+   "Fabric"
+  ],
+  "Model DB": [],
+  "Normal": 25,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Segmentation"
+  ],
+  "Total": 50,
+  "Year": 2016,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "GDXray",
+  "AI based Defect Type": [
+   "Crack",
+   "Inclusion",
+   "Lack of fusion",
+   "Shape"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": 19407,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "",
+  "Class": 1,
+  "Created time": "2025년 10월 20일 오후 5:22",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly"
+  ],
+  "Dimension": "3D",
+  "Image Modality": [
+   "RGB-D"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:22",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://domingomery.ing.puc.cl/material/gdxray/",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 19407,
+  "Year": 2016,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "IPAD",
+  "AI based Defect Type": [],
+  "AI based defect types count": 39,
+  "Abnormal": null,
+  "Annotation Format": [
+   "N/A"
+  ],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "",
+  "Class": 16,
+  "Created time": "2025년 10월 20일 오후 5:22",
+  "Data Source Type": "Real & Synthetic",
+  "Defect Category": [
+   "Logical Anomaly"
+  ],
+  "Dimension": "3D",
+  "Image Modality": [
+   "Video"
+  ],
+  "Industry Domain": [
+   "General",
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 12일 오후 1:43",
+  "License": "N/A",
+  "Link": "https://ljf1113.github.io/IPAD_VAD/",
+  "Material Domain": [
+   "None"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Process Monitoring"
+  ],
+  "Task": [
+   "AD"
+  ],
+  "Total": 597979,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": false,
+  "description": ""
+ },
+ {
+  "Name": "KolekrotSDD",
+  "AI based Defect Type": [
+   "Hole",
+   "Stain",
+   "Wrinkle"
+  ],
+  "AI based defect types count": 1,
+  "Abnormal": 52,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "",
+  "Class": 1,
+  "Created time": "2025년 10월 20일 오후 5:55",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 13일 오후 2:57",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://www.vicos.si/resources/kolektorsdd/",
+  "Material Domain": [
+   "Metal",
+   "Surface"
+  ],
+  "Model DB": [],
+  "Normal": 347,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 399,
+  "Year": 2019,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "HSS-IAD(KolektorSDD2)",
+  "AI based Defect Type": [],
+  "AI based defect types count": null,
+  "Abnormal": 356,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": null,
+  "Created time": "2025년 10월 21일 오후 3:22",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2026년 3월 23일 오후 2:39",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://www.vicos.si/resources/kolektorsdd2/",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 2979,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 3335,
+  "Year": 2021,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "MIAD",
+  "AI based Defect Type": [],
+  "AI based defect types count": null,
+  "Abnormal": 17500,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 7,
+  "Created time": "2025년 10월 21일 오후 3:25",
+  "Data Source Type": "Synthetic",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "General"
+  ],
+  "Last edited time": "2025년 11월 13일 오후 3:24",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://miad-2022.github.io/",
+  "Material Domain": [
+   "Bolt",
+   "Catenary Dropper",
+   "Electrical Insulator",
+   "Metal",
+   "Nut",
+   "Photovoltaic Module",
+   "Wind Turbine",
+   "Witness Mark"
+  ],
+  "Model DB": [],
+  "Normal": 87500,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 105000,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "MPDD",
+  "AI based Defect Type": [
+   "Bending",
+   "Contamination",
+   "Crack",
+   "Defective Parts",
+   "Hole",
+   "Major Rust",
+   "Missing Parts",
+   "Painting Defects",
+   "Scratch"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": 282,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 6,
+  "Created time": "2025년 10월 21일 오후 4:05",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "General"
+  ],
+  "Last edited time": "2025년 11월 13일 오후 3:24",
+  "License": "N/A",
+  "Link": "https://github.com/stepanje/MPDD",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": 1064,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 1346,
+  "Year": 2021,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "MTD",
+  "AI based Defect Type": [
+   "Blow hole",
+   "Break",
+   "Crack",
+   "Fray",
+   "Free",
+   "Uneven"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": 392,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 1,
+  "Created time": "2025년 10월 21일 오후 4:11",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Electronics"
+  ],
+  "Last edited time": "2025년 11월 13일 오후 3:30",
+  "License": "N/A",
+  "Link": "https://github.com/abin24/Magnetic-tile-defect-datasets..git",
+  "Material Domain": [
+   "Ferrite",
+   "Magnet"
+  ],
+  "Model DB": [],
+  "Normal": 952,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 1344,
+  "Year": 2018,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "NanoTwice",
+  "AI based Defect Type": [],
+  "AI based defect types count": null,
+  "Abnormal": 40,
+  "Annotation Format": [],
+  "Annotation Level": [],
+  "Automotive process": "",
+  "Class": 1,
+  "Created time": "2025년 10월 21일 오후 4:18",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "General"
+  ],
+  "Last edited time": "2025년 10월 28일 오후 6:56",
+  "License": "",
+  "Link": "",
+  "Material Domain": [
+   "Fiber"
+  ],
+  "Model DB": [],
+  "Normal": 5,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Segmentation"
+  ],
+  "Total": 45,
+  "Year": 2016,
+  "in-lab": "",
+  "isAutomotive": null,
+  "isDownloadable": null,
+  "isImage": null,
+  "description": ""
+ },
+ {
+  "Name": "NEU surface defect",
+  "AI based Defect Type": [
+   "Crazing",
+   "Inclusion",
+   "Patch",
+   "Pitted Surface",
+   "Rolled-in scale",
+   "Scratch"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": 1800,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Object-level"
+  ],
+  "Automotive process": "",
+  "Class": 1,
+  "Created time": "2025년 10월 21일 오후 4:23",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Steel"
+  ],
+  "Last edited time": "2025년 11월 13일 오후 3:32",
+  "License": "N/A",
+  "Link": "http://faculty.neu.edu.cn/songkechen/zh_CN/zdylm/263270/list/index.htm",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Hot Rolling",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Object-Detection"
+  ],
+  "Total": 1800,
+  "Year": 2013,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Real-IAD",
+  "AI based Defect Type": [
+   "Abrasion",
+   "Contamination",
+   "Damage",
+   "Deformation",
+   "Foreign Object",
+   "Missing Parts",
+   "Pit",
+   "Scratch"
+  ],
+  "AI based defect types count": 8,
+  "Abnormal": 51329,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 30,
+  "Created time": "2025년 10월 21일 오후 4:24",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "General"
+  ],
+  "Last edited time": "2025년 11월 15일 오전 10:44",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://realiad4ad.github.io/Real-IAD/",
+  "Material Domain": [
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 99721,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Segmentation"
+  ],
+  "Total": 151050,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Real3D-AD",
+  "AI based Defect Type": [
+   "Pitted Surface",
+   "Surface Defect"
+  ],
+  "AI based defect types count": 2,
+  "Abnormal": 602,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Point-level"
+  ],
+  "Automotive process": "",
+  "Class": 12,
+  "Created time": "2025년 10월 21일 오후 4:40",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "3D",
+  "Image Modality": [
+   "Point-cloud"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 14일 오후 3:30",
+  "License": "CC-BY-4.0",
+  "Link": "https://github.com/M-3LAB/Real3D-AD",
+  "Material Domain": [
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 652,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Segmentation"
+  ],
+  "Total": 1254,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "RSDD",
+  "AI based Defect Type": [
+   "Crack",
+   "Pothole"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": 6140,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "",
+  "Class": 4,
+  "Created time": "2025년 10월 21일 오후 4:48",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Railway",
+   "Transportation"
+  ],
+  "Last edited time": "2025년 11월 14일 오후 3:39",
+  "License": "Research-only",
+  "Link": "https://universe.roboflow.com/rdmo/rsdd",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Maintenance",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Segmentation"
+  ],
+  "Total": 6140,
+  "Year": 2017,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Steel defect detection",
+  "AI based Defect Type": [
+   "Crazing",
+   "Inclusion",
+   "Patch",
+   "Pitted Surface",
+   "Scratch"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 4,
+  "Created time": "2025년 10월 21일 오후 5:26",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Manufacturing",
+   "Steel"
+  ],
+  "Last edited time": "2025년 11월 14일 오후 3:46",
+  "License": "Research-only",
+  "Link": "https://datasetninja.com/severstal",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD"
+  ],
+  "Total": 7095,
+  "Year": 2019,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Steel Pipe Weld Defect Detection",
+  "AI based Defect Type": [
+   "Blow hole",
+   "Broken arc",
+   "Crack",
+   "Hollow bead",
+   "Lack of fusion",
+   "Overlap",
+   "Slag Inclusion",
+   "Undercut"
+  ],
+  "AI based defect types count": 8,
+  "Abnormal": 3408,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Object-level"
+  ],
+  "Automotive process": "",
+  "Class": 1,
+  "Created time": "2025년 10월 21일 오후 5:29",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly",
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Heavy Industry",
+   "Steel"
+  ],
+  "Last edited time": "2026년 4월 24일 오후 5:04",
+  "License": "GPL-3.0",
+  "Link": "https://github.com/huangyebiaoke/steel-pipe-weld-defect-detection",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Quality Inspection",
+   "Welding"
+  ],
+  "Task": [
+   "AD",
+   "Object-Detection"
+  ],
+  "Total": 3408,
+  "Year": 2021,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "AutoVI",
+  "AI based Defect Type": [
+   "Blue Hoop",
+   "Cardboard",
+   "Fastening",
+   "Missing",
+   "Netting Multiple",
+   "Obstruction",
+   "Operator",
+   "Unclipped"
+  ],
+  "AI based defect types count": 8,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "Assembly",
+  "Class": 6,
+  "Created time": "2025년 10월 24일 오후 4:35",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Logical Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Automotive"
+  ],
+  "Last edited time": "2025년 11월 27일 오후 12:41",
+  "License": "CC-BY-NC-SA-4.0",
+  "Link": "https://zenodo.org/records/8099580",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Multi-Classification",
+   "Segmentation"
+  ],
+  "Total": 3950,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": true,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "SWRD",
+  "AI based Defect Type": [
+   "Crack",
+   "Inclusion",
+   "Lack of Penetration",
+   "Lack of fusion",
+   "Porosity",
+   "Undercut"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": 0,
+  "Annotation Format": [
+   "Bounding Box",
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 2,
+  "Created time": "2025년 10월 27일 오후 2:35",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "X-ray"
+  ],
+  "Industry Domain": [
+   "Heavy Industry"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:22",
+  "License": "CC-BY-4.0",
+  "Link": "http://www.tz-ndt.com/#/download",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Welding"
+  ],
+  "Task": [
+   "Classification",
+   "Instance Segmentation",
+   "Object-Detection"
+  ],
+  "Total": 3675,
+  "Year": 2025,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": false,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Casting Defect Detection",
+  "AI based Defect Type": [
+   "Blow hole",
+   "Burr",
+   "Metallurgical",
+   "Mold Material",
+   "Pin hole",
+   "Pouring Metal",
+   "Shrinkage"
+  ],
+  "AI based defect types count": 7,
+  "Abnormal": 781,
+  "Annotation Format": [
+   "N/A"
+  ],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "N/A",
+  "Class": 2,
+  "Created time": "2025년 10월 27일 오후 2:35",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2026년 3월 20일 오후 4:15",
+  "License": "MIT",
+  "Link": "https://github.com/Mahdi-Kriaa/Casting_Defect_Detection?tab=readme-ov-file",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 519,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Classification"
+  ],
+  "Total": 1300,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "OSPD",
+  "AI based Defect Type": [
+   "Hole",
+   "Missing"
+  ],
+  "AI based defect types count": 2,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Bounding Box",
+   "Mask",
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Object-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "Stamping",
+  "Class": null,
+  "Created time": "2025년 10월 27일 오후 2:35",
+  "Data Source Type": "Real & Synthetic",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "Automotive"
+  ],
+  "Last edited time": "2025년 11월 27일 오후 12:40",
+  "License": "CC-BY-4.0",
+  "Link": "Download Link: https://tinyurl.com/hm6xatd7 / Paper: https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10711790",
+  "Material Domain": [
+   "Metal",
+   "Metal Plate",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection",
+   "Surface Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": null,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": true,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "GC10-DET",
+  "AI based Defect Type": [
+   "Contamination",
+   "Crack",
+   "Crease",
+   "Deformation",
+   "Hole",
+   "Inclusion",
+   "Line",
+   "Pitted Surface",
+   "Texture"
+  ],
+  "AI based defect types count": 9,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Object-level"
+  ],
+  "Automotive process": "",
+  "Class": 10,
+  "Created time": "2025년 10월 27일 오후 2:35",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 15일 오전 10:13",
+  "License": "CC-BY-4.0",
+  "Link": "https://www.kaggle.com/datasets/alex000kim/gc10det",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Object-Detection"
+  ],
+  "Total": 2300,
+  "Year": 2020,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Hyundai RB Dataset",
+  "AI based Defect Type": [
+   "Burn Through",
+   "Contamination",
+   "Crack",
+   "Incomplete Penetration",
+   "Lack of fusion",
+   "Overlap",
+   "Porosity",
+   "Slag Inclusion",
+   "Surface Defect",
+   "Undercut",
+   "Underfill"
+  ],
+  "AI based defect types count": 11,
+  "Abnormal": 2127,
+  "Annotation Format": [],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 11,
+  "Created time": "2025년 10월 28일 오후 8:29",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "X-ray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2026년 4월 24일 오후 5:04",
+  "License": "N/A",
+  "Link": "",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 460948,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection",
+   "Welding"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Segmentation"
+  ],
+  "Total": 463075,
+  "Year": null,
+  "in-lab": "Yes",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Hyundai RB Dataset(middle)",
+  "AI based Defect Type": [
+   "Burn Through",
+   "Contamination",
+   "Crack",
+   "Incomplete Penetration",
+   "Lack of fusion",
+   "Overlap",
+   "Porosity",
+   "Slag Inclusion",
+   "Surface Defect",
+   "Undercut",
+   "Underfill"
+  ],
+  "AI based defect types count": 11,
+  "Abnormal": 602,
+  "Annotation Format": [],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "",
+  "Class": 11,
+  "Created time": "2025년 10월 29일 오후 2:00",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "X-ray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2026년 4월 24일 오후 5:04",
+  "License": "N/A",
+  "Link": "",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 20692,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection",
+   "Welding"
+  ],
+  "Task": [
+   "Multi-Classification"
+  ],
+  "Total": 21294,
+  "Year": null,
+  "in-lab": "Yes",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Hyundai RB Dataset(IQI)",
+  "AI based Defect Type": [
+   "Crack",
+   "Overlap",
+   "Porosity",
+   "Slag Inclusion",
+   "Surface Defect",
+   "Undercut"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": 20,
+  "Annotation Format": [],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 6,
+  "Created time": "2025년 10월 29일 오후 2:00",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "X-ray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2026년 4월 24일 오후 5:04",
+  "License": "N/A",
+  "Link": "",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 5446,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection",
+   "Welding"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Segmentation"
+  ],
+  "Total": 5466,
+  "Year": null,
+  "in-lab": "Yes",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "창원 용접 AI 학습 데이터(VT)",
+  "AI based Defect Type": [
+   "Incomplete Penetration",
+   "Lack of fusion",
+   "Porosity",
+   "Undercut"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": 38085,
+  "Annotation Format": [
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 5,
+  "Created time": "2025년 10월 29일 오후 2:29",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 15일 오전 10:20",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=%EC%9A%A9%EC%A0%91+%EA%B2%B0%ED%95%A8&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=&aihubDataSe=data&dataSetSn=71761",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": 35934,
+  "Process Domain": [
+   "Quality Inspection",
+   "Welding"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Segmentation"
+  ],
+  "Total": 74019,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "창원 용접 AI 학습 데이터(RT-steel)",
+  "AI based Defect Type": [
+   "Crack",
+   "Lack of fusion",
+   "Porosity",
+   "Slag Inclusion"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": 33713,
+  "Annotation Format": [
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 5,
+  "Created time": "2025년 10월 29일 오후 2:29",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "X-ray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2026년 4월 24일 오후 5:13",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=%EC%9A%A9%EC%A0%91+%EA%B2%B0%ED%95%A8&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=&aihubDataSe=data&dataSetSn=71761",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": 26287,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection",
+   "Welding"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Segmentation"
+  ],
+  "Total": 60000,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "창원 용접 AI 학습 데이터(RT-aluminum)",
+  "AI based Defect Type": [
+   "Crack",
+   "Lack of fusion",
+   "Porosity",
+   "Slag Inclusion"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": 4758,
+  "Annotation Format": [
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 5,
+  "Created time": "2025년 10월 29일 오후 3:16",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "X-ray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:22",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=%EC%9A%A9%EC%A0%91+%EA%B2%B0%ED%95%A8&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=&aihubDataSe=data&dataSetSn=71761",
+  "Material Domain": [
+   "Aluminum"
+  ],
+  "Model DB": [],
+  "Normal": 5242,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection",
+   "Welding"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Segmentation"
+  ],
+  "Total": 10000,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "LNG탱크 품질 검사 영상 데이터",
+  "AI based Defect Type": [
+   "Abrasion",
+   "Coating",
+   "Contamination",
+   "Crack",
+   "Deformation",
+   "Dent",
+   "Inclusion",
+   "Pit",
+   "Scratch",
+   "Surface Defect"
+  ],
+  "AI based defect types count": 19,
+  "Abnormal": 220260,
+  "Annotation Format": [
+   "Bounding Box",
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Object-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 4,
+  "Created time": "2025년 10월 29일 오후 5:10",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Heavy Industry",
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 7일 오전 12:53",
+  "License": "CC BY-NC 4.0",
+  "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=REALM012&aihubDataSe=data&dataSetSn=71690",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": 90096,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Instance Segmentation",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 310356,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "배터리 불량 이미지 데이터",
+  "AI based Defect Type": [
+   "Bubble",
+   "Contamination",
+   "Crack",
+   "Damage",
+   "Deformation",
+   "Dent",
+   "Discoloration",
+   "Hole",
+   "Missing",
+   "Oversized",
+   "Scratch",
+   "Undersized",
+   "Warping"
+  ],
+  "AI based defect types count": 8,
+  "Abnormal": 302603,
+  "Annotation Format": [
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 8,
+  "Created time": "2025년 10월 30일 오후 12:22",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly",
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Electronics"
+  ],
+  "Last edited time": "2025년 11월 7일 오전 12:54",
+  "License": "CC BY-NC 4.0",
+  "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=REALM012&aihubDataSe=data&dataSetSn=71687",
+  "Material Domain": [
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 143641,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 446244,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "SPOT_in-site(2D)",
+  "AI based Defect Type": [
+   "Shape",
+   "Size"
+  ],
+  "AI based defect types count": 3,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 2,
+  "Created time": "2025년 10월 30일 오후 1:11",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "Automotive",
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 17일 오후 1:24",
+  "License": "N/A",
+  "Link": "https://github.com/daliwang/SPOT_in-situ",
+  "Material Domain": [
+   "Aluminum",
+   "Metal",
+   "Multi-material",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection",
+   "Welding"
+  ],
+  "Task": [
+   "Classification",
+   "Segmentation"
+  ],
+  "Total": 90,
+  "Year": 2021,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": false,
+  "description": ""
+ },
+ {
+  "Name": "SPOT_in-site(3D)",
+  "AI based Defect Type": [
+   "Shape",
+   "Size"
+  ],
+  "AI based defect types count": 3,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 2,
+  "Created time": "2025년 10월 30일 오후 1:59",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "3D",
+  "Image Modality": [
+   "Video"
+  ],
+  "Industry Domain": [
+   "Automotive",
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 17일 오후 1:00",
+  "License": "N/A",
+  "Link": "https://github.com/daliwang/SPOT_in-situ",
+  "Material Domain": [
+   "Aluminum",
+   "Metal",
+   "Multi-material",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection",
+   "Welding"
+  ],
+  "Task": [
+   "Classification",
+   "Regression",
+   "Segmentation"
+  ],
+  "Total": 3090,
+  "Year": 2021,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": false,
+  "description": ""
+ },
+ {
+  "Name": "Resistance Spot Welding Insights",
+  "AI based Defect Type": [
+   "Expulsion",
+   "Lack of Penetration",
+   "Size"
+  ],
+  "AI based defect types count": 3,
+  "Abnormal": null,
+  "Annotation Format": [
+   "N/A"
+  ],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "",
+  "Class": 3,
+  "Created time": "2025년 10월 30일 오후 2:24",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Internal Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 17일 오후 12:35",
+  "License": "CC-BY-4.0",
+  "Link": "https://www.kaggle.com/datasets/warcoder/resistance-spot-welding-insights/data",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection",
+   "Welding"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Regression"
+  ],
+  "Total": null,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Laser welding IR data for ML",
+  "AI based Defect Type": [
+   "Crack",
+   "Lack of Penetration",
+   "Porosity"
+  ],
+  "AI based defect types count": 3,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "N/A"
+  ],
+  "Automotive process": "",
+  "Class": 4,
+  "Created time": "2025년 10월 31일 오후 1:14",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "N/A"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "IR"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 17일 오후 12:34",
+  "License": "CC-BY-4.0",
+  "Link": "https://zenodo.org/records/1049434",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Welding"
+  ],
+  "Task": [
+   "N/A"
+  ],
+  "Total": null,
+  "Year": 2017,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": false,
+  "description": ""
+ },
+ {
+  "Name": "김치 생산공정별 비파괴 품질검사를 위한 데이터셋(배추원물)",
+  "AI based Defect Type": [
+   "N/A"
+  ],
+  "AI based defect types count": 0,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 3,
+  "Created time": "2025년 10월 31일 오후 1:23",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "N/A"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Food Processing"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:22",
+  "License": "N/A",
+  "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=&topMenu=&srchOptnCnd=OPTNCND001&searchKeyword=%EC%A0%9C%EC%A1%B0&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&aihubDataSe=data&dataSetSn=71777",
+  "Material Domain": [
+   "Vegetable"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Segmentation"
+  ],
+  "Total": 30300,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "김치 생산공정별 비파괴 품질검사를 위한 데이터셋(절임배추)",
+  "AI based Defect Type": [
+   "N/A"
+  ],
+  "AI based defect types count": 0,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 3,
+  "Created time": "2025년 10월 31일 오후 1:32",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "N/A"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Food Processing"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:22",
+  "License": "N/A",
+  "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=&topMenu=&srchOptnCnd=OPTNCND001&searchKeyword=%EC%A0%9C%EC%A1%B0&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&aihubDataSe=data&dataSetSn=71777",
+  "Material Domain": [
+   "Vegetable"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Segmentation"
+  ],
+  "Total": 30238,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "김치 생산공정별 비파괴 품질검사를 위한 데이터셋(종균김치)",
+  "AI based Defect Type": [
+   "N/A"
+  ],
+  "AI based defect types count": 0,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 3,
+  "Created time": "2025년 10월 31일 오후 1:32",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "N/A"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Food Processing"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:22",
+  "License": "N/A",
+  "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=&topMenu=&srchOptnCnd=OPTNCND001&searchKeyword=제조&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&aihubDataSe=data&dataSetSn=71777",
+  "Material Domain": [
+   "Vegetable"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Segmentation"
+  ],
+  "Total": 30190,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "선박 도장 품질 데이터",
+  "AI based Defect Type": [
+   "Incomplete fusion",
+   "N/A",
+   "Oversized",
+   "Shape",
+   "Size",
+   "Undersized"
+  ],
+  "AI based defect types count": 10,
+  "Abnormal": 102542,
+  "Annotation Format": [
+   "Bounding Box",
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Object-level",
+   "Pixel-level",
+   "Point-level"
+  ],
+  "Automotive process": "",
+  "Class": 20,
+  "Created time": "2025년 11월 1일 오후 9:38",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Heavy Industry"
+  ],
+  "Last edited time": "2025년 11월 7일 오전 12:56",
+  "License": "CC BY-NC 4.0",
+  "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=REALM012&aihubDataSe=data&dataSetSn=71447",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": 103491,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Classification",
+   "Instance Segmentation",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 206033,
+  "Year": 2022,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "차량 파손 이미지 데이터",
+  "AI based Defect Type": [
+   "Break",
+   "Dent",
+   "Scratch",
+   "Separated"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": 632694,
+  "Annotation Format": [
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "Inspection",
+  "Class": 4,
+  "Created time": "2025년 11월 1일 오후 9:48",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Automotive"
+  ],
+  "Last edited time": "2025년 11월 27일 오후 12:41",
+  "License": "CC BY-NC 4.0",
+  "Link": "https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=581",
+  "Material Domain": [
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Car Body",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 632694,
+  "Year": 2021,
+  "in-lab": "",
+  "isAutomotive": true,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "제조현장 이송장치의 열화 예지보전 멀티모달 데이터",
+  "AI based Defect Type": [
+   "Crack",
+   "Rolled-in scale",
+   "Shape",
+   "Size"
+  ],
+  "AI based defect types count": 3,
+  "Abnormal": 64139,
+  "Annotation Format": [
+   "N/A"
+  ],
+  "Annotation Level": [
+   "Logical-level"
+  ],
+  "Automotive process": "",
+  "Class": 4,
+  "Created time": "2025년 11월 1일 오후 9:48",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 7일 오전 1:03",
+  "License": "CC BY-NC 4.0",
+  "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=&topMenu=&srchOptnCnd=OPTNCND001&searchKeyword=%EC%A0%9C%EC%A1%B0&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&aihubDataSe=data&dataSetSn=71802",
+  "Material Domain": [
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 60124,
+  "Process Domain": [
+   "Product Assembly",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Classification",
+   "Regression"
+  ],
+  "Total": 124263,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "비파괴(X-Ray) 검사 영상 기반 항공기 부품 결함 자동 판독 데이터",
+  "AI based Defect Type": [
+   "Crack",
+   "Lack of Penetration",
+   "Porosity",
+   "Scratch"
+  ],
+  "AI based defect types count": 3,
+  "Abnormal": 42398,
+  "Annotation Format": [
+   "Bounding Box",
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 4,
+  "Created time": "2025년 11월 1일 오후 10:36",
+  "Data Source Type": "Synthetic",
+  "Defect Category": [
+   "Internal Anomaly",
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "X-ray"
+  ],
+  "Industry Domain": [
+   "General",
+   "Manufacturing",
+   "Transportation"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:22",
+  "License": "CC BY-NC 4.0",
+  "Link": "https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&&srchDataRealmCode=REALM001&aihubDataSe=data&dataSetSn=71867",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 10044,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Object-Detection"
+  ],
+  "Total": 52442,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": false,
+  "isImage": false,
+  "description": ""
+ },
+ {
+  "Name": "공군 활주로 크랙 데이터",
+  "AI based Defect Type": [
+   "Crack",
+   "Damage"
+  ],
+  "AI based defect types count": 8,
+  "Abnormal": 230753,
+  "Annotation Format": [
+   "Bounding Box",
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Object-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 9,
+  "Created time": "2025년 11월 1일 오후 10:52",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "General",
+   "Heavy Industry",
+   "Transportation"
+  ],
+  "Last edited time": "2025년 11월 8일 오후 8:48",
+  "License": "CC BY-NC 4.0",
+  "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=REALM001&srchDataRealmCode=REALM012&aihubDataSe=data&dataSetSn=71868",
+  "Material Domain": [
+   "Concrete"
+  ],
+  "Model DB": [],
+  "Normal": 594,
+  "Process Domain": [
+   "Maintenance",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 231347,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": false,
+  "isImage": false,
+  "description": ""
+ },
+ {
+  "Name": "CID",
+  "AI based Defect Type": [
+   "Break",
+   "Coating",
+   "Contamination",
+   "Crack",
+   "Free",
+   "Missing"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": 360,
+  "Annotation Format": [
+   "Bounding Box",
+   "Mask",
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 7,
+  "Created time": "2025년 11월 2일 오후 5:24",
+  "Data Source Type": "Real & Synthetic",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Electronics",
+   "General",
+   "Heavy Industry"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:22",
+  "License": "MIT",
+  "Link": "https://github.com/Light-ZhangTao/Insulator-Defect-Detection?tab=readme-ov-file",
+  "Material Domain": [
+   "Electrical Insulator",
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 3933,
+  "Process Domain": [
+   "Maintenance",
+   "Nondestructive Testing",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 4293,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "RAD",
+  "AI based Defect Type": [
+   "Damage",
+   "Foreign Object"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": 1224,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 5,
+  "Created time": "2025년 11월 2일 오후 5:24",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Electronics",
+   "General",
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 8일 오후 8:53",
+  "License": "CC-BY-4.0",
+  "Link": "https://github.com/hustCYQ/RAD-dataset?tab=readme-ov-file",
+  "Material Domain": [
+   "Bolt",
+   "Metal",
+   "Multi-material",
+   "Ribbon",
+   "Sponge",
+   "Tape"
+  ],
+  "Model DB": [],
+  "Normal": 286,
+  "Process Domain": [
+   "Process Monitoring",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Classification"
+  ],
+  "Total": 1510,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "건물 균열 탐지 이미지 (고도화)- SOC 시설물 균열패턴 이미지 데이터",
+  "AI based Defect Type": [
+   "Break",
+   "Crack",
+   "Leakage",
+   "Lifting",
+   "Pilling",
+   "Seperation",
+   "Whitening"
+  ],
+  "AI based defect types count": 10,
+  "Abnormal": 500000,
+  "Annotation Format": [
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 11,
+  "Created time": "2025년 11월 2일 오후 5:55",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "General",
+   "Heavy Industry"
+  ],
+  "Last edited time": "2025년 11월 8일 오후 8:55",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=71769",
+  "Material Domain": [
+   "Concrete",
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 25000,
+  "Process Domain": [
+   "Maintenance",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Segmentation"
+  ],
+  "Total": 525000,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "건물 균열 탐지 이미지",
+  "AI based Defect Type": [
+   "Crack",
+   "Damage",
+   "Leakage",
+   "Painting Defects",
+   "Whitening"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": 500000,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 2,
+  "Created time": "2025년 11월 2일 오후 5:55",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "General",
+   "Heavy Industry"
+  ],
+  "Last edited time": "2025년 11월 8일 오후 8:57",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&dataSetSn=162",
+  "Material Domain": [
+   "Concrete",
+   "Multi-material"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Maintenance",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 500000,
+  "Year": 2020,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "LoHi-WELD",
+  "AI based Defect Type": [
+   "Deposit",
+   "Discontinuities",
+   "Porosity",
+   "Stain"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Object-level"
+  ],
+  "Automotive process": "",
+  "Class": null,
+  "Created time": "2025년 11월 3일 오후 2:05",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Heavy Industry",
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:04",
+  "License": "CC BY-NC-ND 4.0",
+  "Link": "https://github.com/SylvioBlock/LoHi-Weld",
+  "Material Domain": [
+   "Metal",
+   "Metal Plate",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection",
+   "Welding"
+  ],
+  "Task": [
+   "Object-Detection"
+  ],
+  "Total": 3022,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "SteelBlastQC",
+  "AI based Defect Type": [
+   "Corrosion",
+   "Discoloration",
+   "Scratch",
+   "Welding Lines"
+  ],
+  "AI based defect types count": null,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Label"
+  ],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "",
+  "Class": 2,
+  "Created time": "2025년 11월 3일 오후 2:17",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Heavy Industry",
+   "Manufacturing",
+   "Steel"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:08",
+  "License": "CC-BY-4.0",
+  "Link": "https://dataverse.nl/dataset.xhtml?persistentId=doi:10.34894/EKZNN0",
+  "Material Domain": [
+   "Metal",
+   "Metal Plate",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Classification"
+  ],
+  "Total": 1654,
+  "Year": 2025,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": false,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Aluminum profile surface defects",
+  "AI based Defect Type": [
+   "Bruise",
+   "Bubble",
+   "Corrosion",
+   "Crack",
+   "Deformation",
+   "Dent",
+   "Extrusion mark",
+   "Peeling",
+   "Pressure pit",
+   "Scrape"
+  ],
+  "AI based defect types count": 10,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Object-level"
+  ],
+  "Automotive process": "",
+  "Class": 10,
+  "Created time": "2025년 11월 3일 오후 2:30",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Heavy Industry",
+   "Manufacturing"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:18",
+  "License": "N/A",
+  "Link": "https://www.kaggle.com/datasets/weihaoreal/aluminum-profile-surface-defects-data-set",
+  "Material Domain": [
+   "Aluminum",
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Object-Detection"
+  ],
+  "Total": 3005,
+  "Year": 2018,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Textile Defect Detection",
+  "AI based Defect Type": [
+   "Color",
+   "Contamination",
+   "Cut",
+   "Hole",
+   "Thread"
+  ],
+  "AI based defect types count": 5,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Label"
+  ],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "",
+  "Class": 6,
+  "Created time": "2025년 11월 3일 오후 6:33",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Fabric",
+   "Textile"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:24",
+  "License": "N/A",
+  "Link": "https://www.kaggle.com/datasets/belkhirnacim/textiledefectdetection",
+  "Material Domain": [
+   "Fabric"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Multi-Classification"
+  ],
+  "Total": null,
+  "Year": null,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "FSSD-12",
+  "AI based Defect Type": [],
+  "AI based defect types count": 12,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": null,
+  "Created time": "2025년 11월 3일 오후 6:41",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Manufacturing",
+   "Steel"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:26",
+  "License": "",
+  "Link": "https://github.com/VDT-2048/CPANet",
+  "Material Domain": [
+   "Metal",
+   "Metal Plate",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection",
+   "Surface Inspection"
+  ],
+  "Task": [
+   "Segmentation"
+  ],
+  "Total": null,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "CSDD",
+  "AI based Defect Type": [
+   "Rust",
+   "Scratch",
+   "Spot"
+  ],
+  "AI based defect types count": 3,
+  "Abnormal": 2100,
+  "Annotation Format": [
+   "Bounding Box",
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Object-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 0,
+  "Created time": "2025년 11월 3일 오후 6:54",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Steel"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 7:49",
+  "License": "CC-BY-NC-SA-4.0",
+  "Link": "https://github.com/Kerio99/CSDD?utm_source=chatgpt.com",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Instance Segmentation",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 2100,
+  "Year": 2025,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": false,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Texture-AD(Metal)",
+  "AI based Defect Type": [
+   "Inherent Defect",
+   "Scratch",
+   "Stain"
+  ],
+  "AI based defect types count": null,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 2,
+  "Created time": "2025년 11월 3일 오후 7:54",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray",
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Heavy Industry",
+   "Manufacturing",
+   "Steel"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:53",
+  "License": "N/A",
+  "Link": "https://huggingface.co/datasets/texture-ad/Texture-AD-Benchmark/tree/main",
+  "Material Domain": [
+   "Metal",
+   "Steel",
+   "Surface",
+   "Texture"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Hot Rolling",
+   "Nondestructive Testing",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Multi-Classification",
+   "Segmentation"
+  ],
+  "Total": 21976,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": false,
+  "isImage": false,
+  "description": ""
+ },
+ {
+  "Name": "Texture-AD(Wafer)",
+  "AI based Defect Type": [
+   "Inherent Defect",
+   "Scratch",
+   "Stain"
+  ],
+  "AI based defect types count": null,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 2,
+  "Created time": "2025년 11월 3일 오후 7:55",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Manufacturing",
+   "Semiconductor"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:51",
+  "License": "N/A",
+  "Link": "https://huggingface.co/datasets/texture-ad/Texture-AD-Benchmark/tree/main",
+  "Material Domain": [
+   "Semiconductor Wafer"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Nondestructive Testing",
+   "Process Monitoring"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 14861,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Texture-AD(Cloth)",
+  "AI based Defect Type": [
+   "Black Dot",
+   "Cut",
+   "Discoloration",
+   "Inconsistent Sewing Distance",
+   "Marker Stain",
+   "Pencil Mark",
+   "Thread",
+   "Water Stain",
+   "White Dot"
+  ],
+  "AI based defect types count": null,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 2,
+  "Created time": "2025년 11월 3일 오후 7:55",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Textile"
+  ],
+  "Last edited time": "2025년 11월 16일 오후 8:50",
+  "License": "N/A",
+  "Link": "https://huggingface.co/datasets/texture-ad/Texture-AD-Benchmark/tree/main",
+  "Material Domain": [
+   "Fabric"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Fabric Production",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 6283,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "부품 품질 검사 영상 데이터(자동차)",
+  "AI based Defect Type": [
+   "Assembly",
+   "Connection",
+   "Fastening",
+   "Gap",
+   "Hemming",
+   "Hole",
+   "Misalignment",
+   "Pin",
+   "Scratch",
+   "Sealing"
+  ],
+  "AI based defect types count": 12,
+  "Abnormal": 110000,
+  "Annotation Format": [
+   "Bounding Box",
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Object-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "Assembly",
+  "Class": 13,
+  "Created time": "2025년 11월 4일 오전 6:33",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Automotive"
+  ],
+  "Last edited time": "2025년 11월 27일 오후 12:41",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=578",
+  "Material Domain": [
+   "Metal",
+   "Plastic"
+  ],
+  "Model DB": [],
+  "Normal": 90000,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Multi-Classification",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 200000,
+  "Year": 2021,
+  "in-lab": "",
+  "isAutomotive": true,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "final year car paint defect Dataset",
+  "AI based Defect Type": [
+   "Dirt",
+   "Runs",
+   "Scratch",
+   "Water Mark"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": 344,
+  "Annotation Format": [
+   "Bounding Box",
+   "Polygon"
+  ],
+  "Annotation Level": [
+   "Object-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "Painting",
+  "Class": 4,
+  "Created time": "2025년 11월 4일 오전 6:49",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Automotive"
+  ],
+  "Last edited time": "2025년 11월 27일 오후 12:41",
+  "License": "N/A",
+  "Link": "https://universe.roboflow.com/poli-h7nww/final-year-car-paint-defect",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 344,
+  "Year": 2022,
+  "in-lab": "",
+  "isAutomotive": true,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "화신 용접비드",
+  "AI based Defect Type": [
+   "Lack of Penetration",
+   "Lack of fusion",
+   "Overlap",
+   "Spatter",
+   "Undercut"
+  ],
+  "AI based defect types count": 5,
+  "Abnormal": 49,
+  "Annotation Format": [
+   "Bounding Box"
+  ],
+  "Annotation Level": [
+   "Image-level"
+  ],
+  "Automotive process": "Body",
+  "Class": 1,
+  "Created time": "2025년 11월 14일 오후 2:54",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Automotive",
+   "Manufacturing"
+  ],
+  "Last edited time": "2026년 4월 24일 오후 5:04",
+  "License": "N/A",
+  "Link": "https://www.notion.so/2aab7e86a5bd80ad8d81d6e1fe920530?source=copy_link",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 1684,
+  "Process Domain": [
+   "Car Body",
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 1733,
+  "Year": 2025,
+  "in-lab": "Yes",
+  "isAutomotive": true,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Metal Defect Detecton Computer Vision Model",
+  "AI based Defect Type": [
+   "Crazing",
+   "Inclusion",
+   "Patch",
+   "Pitted Surface",
+   "Pitting",
+   "Rolled-in scale",
+   "Scratch"
+  ],
+  "AI based defect types count": 7,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Label"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Object-level"
+  ],
+  "Automotive process": "",
+  "Class": null,
+  "Created time": "2025년 11월 22일 오후 8:14",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "Manufacturing",
+   "Steel"
+  ],
+  "Last edited time": "2025년 11월 23일 오후 3:30",
+  "License": "CC-BY-4.0",
+  "Link": "https://universe.roboflow.com/nishivips/metal-defect-detecton-tjixw",
+  "Material Domain": [
+   "Metal",
+   "Steel"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection",
+   "Surface Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Instance Segmentation",
+   "Object-Detection"
+  ],
+  "Total": 72,
+  "Year": 2025,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "CarDD",
+  "AI based Defect Type": [
+   "Crack",
+   "Dent",
+   "Glass Shatter",
+   "Lamp Broken",
+   "Scratch",
+   "Tire Flat"
+  ],
+  "AI based defect types count": 6,
+  "Abnormal": 4000,
+  "Annotation Format": [
+   "Bounding Box",
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Object-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "Inspection",
+  "Class": 6,
+  "Created time": "2025년 11월 22일 오후 8:37",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Automotive"
+  ],
+  "Last edited time": "2026년 3월 20일 오후 3:07",
+  "License": "CC BY-NC 4.0",
+  "Link": "https://cardd-ustc.github.io/?utm_source=chatgpt.com",
+  "Material Domain": [
+   "Metal",
+   "Plastic"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Quality Inspection",
+   "Surface Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 4000,
+  "Year": 2022,
+  "in-lab": "",
+  "isAutomotive": true,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Car Details' Defects Dataset",
+  "AI based Defect Type": [
+   "Break",
+   "Crack",
+   "Dent",
+   "Painting Defects",
+   "Scratch"
+  ],
+  "AI based defect types count": 5,
+  "Abnormal": 608,
+  "Annotation Format": [
+   "Label"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Object-level"
+  ],
+  "Automotive process": "Inspection",
+  "Class": 6,
+  "Created time": "2025년 11월 22일 오후 8:39",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Automotive"
+  ],
+  "Last edited time": "2025년 11월 27일 오후 12:41",
+  "License": "N/A",
+  "Link": "https://www.kaggle.com/datasets/zhakhangershaidullov/car-details-defects-dataset?utm_source=chatgpt.com",
+  "Material Domain": [
+   "Metal",
+   "Plastic"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Quality Inspection",
+   "Surface Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Object-Detection"
+  ],
+  "Total": 608,
+  "Year": 2021,
+  "in-lab": "",
+  "isAutomotive": true,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Cars-Defect Computer Vision Dataset",
+  "AI based Defect Type": [
+   "Dent",
+   "Scratch"
+  ],
+  "AI based defect types count": 2,
+  "Abnormal": 260,
+  "Annotation Format": [
+   "Bounding Box",
+   "Label"
+  ],
+  "Annotation Level": [
+   "Object-level"
+  ],
+  "Automotive process": "Inspection",
+  "Class": 3,
+  "Created time": "2025년 11월 22일 오후 8:46",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Automotive"
+  ],
+  "Last edited time": "2025년 11월 27일 오후 12:41",
+  "License": "CC-BY-4.0",
+  "Link": "https://universe.roboflow.com/shahin-workspace/cars-defect",
+  "Material Domain": [
+   "Metal",
+   "Plastic"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Quality Inspection",
+   "Surface Inspection"
+  ],
+  "Task": [
+   "Object-Detection"
+  ],
+  "Total": 260,
+  "Year": 2023,
+  "in-lab": "",
+  "isAutomotive": true,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "Car defect detection Computer Vision Dataset",
+  "AI based Defect Type": [
+   "Break",
+   "Dent",
+   "Glass Shatter",
+   "N/A",
+   "Scratch"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": 1071,
+  "Annotation Format": [
+   "Bounding Box",
+   "Label"
+  ],
+  "Annotation Level": [
+   "Object-level"
+  ],
+  "Automotive process": "Inspection",
+  "Class": 5,
+  "Created time": "2025년 11월 22일 오후 8:47",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Automotive"
+  ],
+  "Last edited time": "2026년 3월 20일 오후 5:00",
+  "License": "CC-BY-4.0",
+  "Link": "https://universe.roboflow.com/cardetecion/car-defect-detection-nfjfw",
+  "Material Domain": [
+   "Glass",
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 0,
+  "Process Domain": [
+   "Quality Inspection",
+   "Surface Inspection"
+  ],
+  "Task": [
+   "Classification",
+   "Object-Detection",
+   "Segmentation"
+  ],
+  "Total": 1071,
+  "Year": 2024,
+  "in-lab": "",
+  "isAutomotive": true,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "CARS-AD",
+  "AI based Defect Type": [
+   "Broken Part",
+   "Dent",
+   "Scratch",
+   "Wind Screen"
+  ],
+  "AI based defect types count": 4,
+  "Abnormal": 2664,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "Inspection",
+  "Class": 4,
+  "Created time": "2026년 3월 20일 오후 3:08",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Automotive"
+  ],
+  "Last edited time": "2026년 3월 20일 오후 5:08",
+  "License": "N/A",
+  "Link": "https://github.com/juanb09111/heterogeneousAD",
+  "Material Domain": [
+   "N/A"
+  ],
+  "Model DB": [],
+  "Normal": 5592,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD"
+  ],
+  "Total": 8256,
+  "Year": 2025,
+  "in-lab": "",
+  "isAutomotive": true,
+  "isDownloadable": null,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "ROADS-AD",
+  "AI based Defect Type": [
+   "Crack",
+   "Hole",
+   "Surface Discontinuity"
+  ],
+  "AI based defect types count": 3,
+  "Abnormal": 571,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Image-level",
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": 6,
+  "Created time": "2026년 3월 20일 오후 3:08",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "RGB"
+  ],
+  "Industry Domain": [
+   "Infrastructure",
+   "Transportation"
+  ],
+  "Last edited time": "2026년 3월 23일 오후 2:39",
+  "License": "N/A",
+  "Link": "https://github.com/juanb09111/heterogeneousAD",
+  "Material Domain": [
+   "N/A"
+  ],
+  "Model DB": [],
+  "Normal": 1268,
+  "Process Domain": [
+   "Infrastructure Monitoring"
+  ],
+  "Task": [
+   "AD"
+  ],
+  "Total": 1839,
+  "Year": 2025,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "HSS-IAD(KolektorSDD)",
+  "AI based Defect Type": [],
+  "AI based defect types count": null,
+  "Abnormal": 52,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": null,
+  "Created time": "2026년 3월 20일 오후 3:37",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2026년 3월 23일 오후 2:39",
+  "License": "CC BY-NC-SA 4.0",
+  "Link": "https://www.vicos.si/resources/kolektorsdd/",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": 347,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": 399,
+  "Year": 2019,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": true,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "HSS-IAD(MTD)",
+  "AI based Defect Type": [],
+  "AI based defect types count": null,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": null,
+  "Created time": "2026년 3월 20일 오후 3:37",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2026년 3월 23일 오후 2:39",
+  "License": "N/A",
+  "Link": "https://github.com/Qiqigeww/HSS-IAD-Dataset",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": null,
+  "Year": 2018,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": null,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "HSS-IAD(Casting)",
+  "AI based Defect Type": [],
+  "AI based defect types count": null,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": null,
+  "Created time": "2026년 3월 20일 오후 3:38",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2026년 3월 23일 오후 2:39",
+  "License": "N/A",
+  "Link": "https://github.com/Qiqigeww/HSS-IAD-Dataset",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": null,
+  "Year": 2020,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": null,
+  "isImage": true,
+  "description": ""
+ },
+ {
+  "Name": "HSS-IAD(STEEL)",
+  "AI based Defect Type": [],
+  "AI based defect types count": null,
+  "Abnormal": null,
+  "Annotation Format": [
+   "Mask"
+  ],
+  "Annotation Level": [
+   "Pixel-level"
+  ],
+  "Automotive process": "",
+  "Class": null,
+  "Created time": "2026년 3월 20일 오후 3:38",
+  "Data Source Type": "Real",
+  "Defect Category": [
+   "Structural Anomaly"
+  ],
+  "Dimension": "2D",
+  "Image Modality": [
+   "Gray"
+  ],
+  "Industry Domain": [
+   "Manufacturing"
+  ],
+  "Last edited time": "2026년 4월 24일 오후 5:11",
+  "License": "N/A",
+  "Link": "https://github.com/Qiqigeww/HSS-IAD-Dataset",
+  "Material Domain": [
+   "Metal"
+  ],
+  "Model DB": [],
+  "Normal": null,
+  "Process Domain": [
+   "Quality Inspection"
+  ],
+  "Task": [
+   "AD",
+   "Segmentation"
+  ],
+  "Total": null,
+  "Year": 2019,
+  "in-lab": "",
+  "isAutomotive": false,
+  "isDownloadable": null,
+  "isImage": true,
+  "description": ""
+ }
+];
+window.DATASETS_META = { count: 82, source: "Datasets DB.csv" };
+
+</script>
+  <script>
+/* ===========================================================
+ * 산업 결함 데이터셋 DB — 클라이언트 사이드 필터/검색/정렬 앱
+ * 의존성 없음(vanilla JS). data.js 의 window.DATASETS 를 사용.
+ * =========================================================== */
+"use strict";
+
+const DATA = (window.DATASETS || []).map((d, i) => ({ ...d, _id: i }));
+
+/* 사이드바 패싯 (배열형 멀티값 컬럼) — 라벨은 한국어 */
+const FACETS = [
+  { key: "Industry Domain",   label: "산업 분야" },
+  { key: "Task",              label: "태스크" },
+  { key: "Defect Category",   label: "결함 범주" },
+  { key: "Image Modality",    label: "이미지 모달리티" },
+  { key: "Material Domain",   label: "소재" },
+  { key: "Annotation Format", label: "어노테이션 형식" },
+  { key: "Annotation Level",  label: "어노테이션 레벨" },
+  { key: "Process Domain",    label: "공정" },
+];
+/* 단일값 컬럼도 패싯으로 노출 */
+const FACETS_SINGLE = [
+  { key: "Data Source Type", label: "데이터 출처" },
+  { key: "Dimension",        label: "차원" },
+  { key: "License",          label: "라이선스" },
+];
+const ALL_FACETS = [...FACETS, ...FACETS_SINGLE];
+
+const BOOL_FILTERS = [
+  { key: "isImage",        label: "이미지" },
+  { key: "isDownloadable", label: "다운로드" },
+  { key: "isAutomotive",   label: "자동차" },
+];
+
+const SORTS = [
+  { key: "Total",                       label: "총 이미지 수", num: true },
+  { key: "Year",                        label: "연도",         num: true },
+  { key: "AI based defect types count", label: "결함 종류 수", num: true },
+  { key: "Class",                       label: "클래스 수",    num: true },
+  { key: "Name",                        label: "이름",         num: false },
+  { key: "Last edited time",            label: "최종 수정",    num: false },
+];
+
+/* 표 컬럼 */
+const COLUMNS = [
+  { key: "Name",            label: "이름",   type: "name" },
+  { key: "Industry Domain", label: "산업 분야", type: "chips" },
+  { key: "Task",            label: "태스크",  type: "chips" },
+  { key: "Defect Category", label: "결함 범주", type: "chips" },
+  { key: "Image Modality",  label: "모달리티", type: "chips" },
+  { key: "Total",           label: "총 수",  type: "num" },
+  { key: "Year",            label: "연도",   type: "num" },
+  { key: "License",         label: "라이선스", type: "text" },
+];
+
+/* ---------------- 상태 ---------------- */
+const state = {
+  q: "",
+  facets: {},                 // {key: Set(values)}
+  bools: {},                  // {key: true|false}  (없으면 전체)
+  sortKey: "Total",
+  sortDir: -1,                // -1 내림차순, 1 오름차순
+  view: "table",
+  showAll: {},                // {facetKey: bool} — 옵션 더보기
+};
+ALL_FACETS.forEach(f => (state.facets[f.key] = new Set()));
+
+/* 검색 인덱스 문자열 */
+DATA.forEach(d => {
+  d._search = [
+    d.Name,
+    ...(d["AI based Defect Type"] || []),
+    ...(d["Material Domain"] || []),
+    ...(d["Industry Domain"] || []),
+    ...(d["Task"] || []),
+  ].join(" ").toLowerCase();
+});
+
+/* ---------------- 유틸 ---------------- */
+const $ = sel => document.querySelector(sel);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const asArray = v => Array.isArray(v) ? v : (v === "" || v == null ? [] : [v]);
+const fmtNum = n => (n == null ? "—" : n.toLocaleString("en-US"));
+
+/* 한 레코드가 주어진 필터 집합을 통과하는지. exceptFacet 은 패싯 카운트 계산용. */
+function passes(d, { exceptFacet = null } = {}) {
+  if (state.q && !d._search.includes(state.q)) return false;
+  for (const b of BOOL_FILTERS) {
+    if (b.key in state.bools && d[b.key] !== state.bools[b.key]) return false;
+  }
+  for (const f of ALL_FACETS) {
+    if (f.key === exceptFacet) continue;
+    const sel = state.facets[f.key];
+    if (sel.size === 0) continue;
+    const vals = asArray(d[f.key]);
+    if (!vals.some(v => sel.has(v))) return false;
+  }
+  return true;
+}
+
+function filtered() {
+  const arr = DATA.filter(d => passes(d));
+  const s = SORTS.find(s => s.key === state.sortKey);
+  arr.sort((a, b) => {
+    let av = a[state.sortKey], bv = b[state.sortKey];
+    if (s && s.num) { av = av == null ? -Infinity : av; bv = bv == null ? -Infinity : bv; return (av - bv) * state.sortDir; }
+    av = (av || "").toString(); bv = (bv || "").toString();
+    return av.localeCompare(bv) * state.sortDir;
+  });
+  return arr;
+}
+
+/* ---------------- 렌더: 사이드바 ---------------- */
+function buildBoolFilters() {
+  const wrap = $("#bool-filters"); wrap.innerHTML = "";
+  BOOL_FILTERS.forEach(b => {
+    const g = el("div", "tristate");
+    g.appendChild(el("span", null, b.label));
+    [["전체", null], ["예", true], ["아니오", false]].forEach(([txt, val]) => {
+      const btn = el("button", null, txt);
+      const cur = (b.key in state.bools) ? state.bools[b.key] : null;
+      if (cur === val) btn.classList.add("on");
+      btn.onclick = () => {
+        if (val === null) delete state.bools[b.key]; else state.bools[b.key] = val;
+        render();
+      };
+      g.appendChild(btn);
+    });
+    wrap.appendChild(g);
+  });
+}
+
+function facetCounts(facetKey) {
+  const counts = new Map();
+  for (const d of DATA) {
+    if (!passes(d, { exceptFacet: facetKey })) continue;
+    for (const v of asArray(d[facetKey])) counts.set(v, (counts.get(v) || 0) + 1);
+  }
+  return counts;
+}
+
+function buildFacets() {
+  const root = $("#facets"); root.innerHTML = "";
+  ALL_FACETS.forEach((f, idx) => {
+    const counts = facetCounts(f.key);
+    const sel = state.facets[f.key];
+    const entries = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    // 선택된 값이 카운트0이어도 보이도록 보강
+    sel.forEach(v => { if (!counts.has(v)) entries.push([v, 0]); });
+
+    const det = el("details", "facet");
+    if (idx < 4 || sel.size) det.open = true;
+    const sum = el("summary");
+    sum.appendChild(el("span", null, f.label + (sel.size ? ` · ${sel.size}` : "")));
+    sum.appendChild(el("span", "chev", "▸"));
+    det.appendChild(sum);
+
+    const opts = el("div", "opts");
+    const limit = state.showAll[f.key] ? entries.length : 8;
+    entries.slice(0, limit).forEach(([val, n]) => {
+      const lab = el("label", "opt" + (n === 0 && !sel.has(val) ? " zero" : ""));
+      const cb = el("input"); cb.type = "checkbox"; cb.checked = sel.has(val);
+      cb.onchange = () => { cb.checked ? sel.add(val) : sel.delete(val); render(); };
+      lab.appendChild(cb);
+      lab.appendChild(el("span", null, val));
+      lab.appendChild(el("span", "oc", String(n)));
+      opts.appendChild(lab);
+    });
+    if (entries.length > 8) {
+      const more = el("button", "more", state.showAll[f.key] ? "접기" : `+ ${entries.length - 8}개 더보기`);
+      more.onclick = e => { e.preventDefault(); state.showAll[f.key] = !state.showAll[f.key]; render(); };
+      opts.appendChild(more);
+    }
+    det.appendChild(opts);
+    root.appendChild(det);
+  });
+}
+
+/* ---------------- 렌더: 활성 필터 칩 ---------------- */
+function buildActiveFilters() {
+  const wrap = $("#active-filters"); wrap.replaceChildren();
+  // 값(v)은 textContent 로만 삽입 — innerHTML 미사용(XSS 방지)
+  const chip = (label, valText, onclear) => {
+    const c = el("span", "afilter");
+    c.appendChild(el("b", null, label + ":"));
+    c.appendChild(document.createTextNode(" " + valText + " ✕"));
+    c.onclick = onclear;
+    wrap.appendChild(c);
+  };
+  ALL_FACETS.forEach(f => state.facets[f.key].forEach(v =>
+    chip(f.label, v, () => { state.facets[f.key].delete(v); render(); })));
+  BOOL_FILTERS.forEach(b => {
+    if (!(b.key in state.bools)) return;
+    chip(b.label, state.bools[b.key] ? "예" : "아니오", () => { delete state.bools[b.key]; render(); });
+  });
+}
+
+/* ---------------- 렌더: 결과 ---------------- */
+function chipList(vals, dim) {
+  const box = el("div", "cell-chips");
+  asArray(vals).forEach(v => box.appendChild(el("span", "chip" + (dim ? " dim" : ""), v)));
+  if (!box.children.length) box.appendChild(el("span", "chip dim", "—"));
+  return box;
+}
+
+function renderTable(rows) {
+  const wrap = el("div", "table-wrap");
+  const table = el("table");
+  const thead = el("thead"); const trh = el("tr");
+  COLUMNS.forEach(c => trh.appendChild(el("th", null, c.label)));
+  thead.appendChild(trh); table.appendChild(thead);
+  const tb = el("tbody");
+  rows.forEach(d => {
+    const tr = el("tr");
+    tr.onclick = () => openModal(d);
+    COLUMNS.forEach(c => {
+      const td = el("td");
+      if (c.type === "name") { td.className = "name"; td.textContent = d.Name; }
+      else if (c.type === "num") { td.className = "num"; td.textContent = fmtNum(d[c.key]); }
+      else if (c.type === "chips") td.appendChild(chipList(d[c.key]));
+      else td.textContent = d[c.key] || "—";
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  table.appendChild(tb); wrap.appendChild(table);
+  return wrap;
+}
+
+function renderCards(rows) {
+  const grid = el("div", "cards");
+  rows.forEach(d => {
+    const card = el("div", "card");
+    card.onclick = () => openModal(d);
+    card.appendChild(el("h3", null, d.Name));
+    card.appendChild(el("div", "meta", [d["Data Source Type"], d.Dimension, d.Year].filter(Boolean).join(" · ")));
+    const r1 = el("div", "row"); asArray(d["Industry Domain"]).forEach(v => r1.appendChild(el("span", "chip", v))); card.appendChild(r1);
+    const r2 = el("div", "row"); asArray(d.Task).forEach(v => r2.appendChild(el("span", "chip dim", v))); card.appendChild(r2);
+    const st = el("div", "stat");
+    [["총", d.Total], ["정상", d.Normal], ["비정상", d.Abnormal]].forEach(([lab, n]) => {
+      const s = el("span"); s.appendChild(document.createTextNode(lab + " ")); s.appendChild(el("b", null, fmtNum(n))); st.appendChild(s);
+    });
+    card.appendChild(st);
+    grid.appendChild(card);
+  });
+  return grid;
+}
+
+/* ---------------- 렌더: 통계 ---------------- */
+function renderStats(rows) {
+  const host = $("#stats");
+  if (host.classList.contains("hidden")) return;
+  host.innerHTML = "";
+  const dims = [
+    { key: "Industry Domain", label: "산업 분야 분포" },
+    { key: "Task",            label: "태스크 분포" },
+    { key: "Defect Category", label: "결함 범주 분포" },
+    { key: "Image Modality",  label: "모달리티 분포" },
+  ];
+  dims.forEach(dm => {
+    const counts = new Map();
+    rows.forEach(d => asArray(d[dm.key]).forEach(v => counts.set(v, (counts.get(v) || 0) + 1)));
+    const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 7);
+    const max = Math.max(1, ...entries.map(e => e[1]));
+    const card = el("div", "stat-card");
+    card.appendChild(el("h3", null, dm.label));
+    entries.forEach(([val, n]) => {
+      const row = el("div", "bar-row");
+      row.appendChild(el("div", "lbl", val));
+      const track = el("div", "bar-track"); const fill = el("div", "bar-fill");
+      fill.style.width = (n / max * 100) + "%"; track.appendChild(fill);
+      row.appendChild(track);
+      row.appendChild(el("div", "val", String(n)));
+      card.appendChild(row);
+    });
+    host.appendChild(card);
+  });
+}
+
+/* ---------------- 모달 ---------------- */
+/* 상단 핵심 지표 타일 */
+const STAT_TILES = [
+  { key: "Total",                       label: "총 이미지" },
+  { key: "Abnormal",                    label: "비정상" },
+  { key: "Normal",                      label: "정상" },
+  { key: "Class",                       label: "클래스 수" },
+  { key: "AI based defect types count", label: "결함 종류 수" },
+];
+/* 그룹별 상세 섹션 */
+const DETAIL_GROUPS = [
+  { title: "분류 체계", fields: ["Industry Domain", "Defect Category", "Task", "Material Domain", "Process Domain", "AI based Defect Type"] },
+  { title: "데이터 형식", fields: ["Dimension", "Image Modality", "Annotation Format", "Annotation Level", "Data Source Type"] },
+  { title: "메타데이터", fields: ["Year", "License", "isImage", "isDownloadable", "isAutomotive", "Automotive process", "Created time", "Last edited time"] },
+];
+const FIELD_LABELS = {
+  "AI based Defect Type": "결함 유형", "AI based defect types count": "결함 종류 수",
+  "Class": "클래스 수", "Total": "총 이미지", "Normal": "정상", "Abnormal": "비정상",
+  "Data Source Type": "데이터 출처", "Defect Category": "결함 범주", "Dimension": "차원",
+  "Image Modality": "모달리티", "Industry Domain": "산업 분야", "Material Domain": "소재",
+  "Process Domain": "공정", "Annotation Format": "어노테이션 형식", "Annotation Level": "어노테이션 레벨",
+  "Task": "태스크", "Year": "연도", "License": "라이선스", "isImage": "이미지 여부",
+  "isDownloadable": "다운로드 가능", "isAutomotive": "자동차 관련", "Automotive process": "자동차 공정",
+  "Created time": "생성일", "Last edited time": "최종 수정",
+};
+function fmtVal(v) {
+  if (Array.isArray(v)) return v.length ? v : "—";
+  if (typeof v === "boolean") return v ? "예" : "아니오";
+  if (typeof v === "number") return v.toLocaleString("en-US");
+  return v || "—";
+}
+function openModal(d) {
+  const panel = $("#modal-panel");
+  panel.innerHTML = "";
+
+  // 헤더
+  const head = el("div", "modal-head");
+  const hl = el("div");
+  hl.appendChild(el("h2", null, d.Name));
+  hl.appendChild(el("div", "meta", [d["Data Source Type"], d.Dimension, d.Year].filter(Boolean).join("  ·  ")));
+  head.appendChild(hl);
+  const close = el("button", "modal-close", "✕"); close.onclick = closeModal;
+  head.appendChild(close);
+  panel.appendChild(head);
+
+  if (d.description) panel.appendChild(el("div", "modal-desc", d.description));
+
+  // 핵심 지표 타일
+  const tiles = el("div", "stat-tiles");
+  STAT_TILES.forEach(t => {
+    const tile = el("div", "stat-tile");
+    tile.appendChild(el("div", "st-val", fmtNum(d[t.key])));
+    tile.appendChild(el("div", "st-lbl", t.label));
+    tiles.appendChild(tile);
+  });
+  panel.appendChild(tiles);
+
+  // 그룹 섹션
+  DETAIL_GROUPS.forEach(g => {
+    const sec = el("section", "modal-section");
+    sec.appendChild(el("h4", "ms-title", g.title));
+    const dl = el("dl", "dl");
+    g.fields.forEach(k => {
+      const val = fmtVal(d[k]);
+      dl.appendChild(el("dt", null, FIELD_LABELS[k] || k));
+      const dd = el("dd");
+      if (Array.isArray(val)) val.forEach(v => dd.appendChild(el("span", "chip", v)));
+      else dd.textContent = val;
+      dl.appendChild(dd);
+    });
+    sec.appendChild(dl);
+    panel.appendChild(sec);
+  });
+
+  if (d.Link) {
+    const a = el("a", "modal-link", "원본 데이터셋 열기 ↗");
+    a.href = d.Link; a.target = "_blank"; a.rel = "noopener";
+    panel.appendChild(a);
+  }
+  $("#modal").classList.remove("hidden");
+}
+function closeModal() { $("#modal").classList.add("hidden"); }
+
+/* ================= 데이터셋 추가 폼 (관리자 입력 + GitHub PR 제출) ================= */
+const GITHUB = {
+  owner: "Dais-lab",
+  repo: "Industrial-Anomaly-Detection-Datasets",
+  branch: "main",
+  dir: "submissions",    // PR로 제출되는 폴더 (convert.py 가 이 폴더를 읽어 병합)
+};
+
+/* 폼 필드 정의 */
+const FORM_FIELDS = [
+  { key: "Name", label: "이름", type: "text", required: true },
+  { key: "Link", label: "원본 링크(URL)", type: "url" },
+  { key: "Industry Domain", label: "산업 분야", type: "multi" },
+  { key: "Defect Category", label: "결함 범주", type: "multi" },
+  { key: "Task", label: "태스크", type: "multi" },
+  { key: "Material Domain", label: "소재", type: "multi" },
+  { key: "Process Domain", label: "공정", type: "multi" },
+  { key: "AI based Defect Type", label: "결함 유형", type: "multi" },
+  { key: "Image Modality", label: "이미지 모달리티", type: "multi" },
+  { key: "Annotation Format", label: "어노테이션 형식", type: "multi" },
+  { key: "Annotation Level", label: "어노테이션 레벨", type: "multi" },
+  { key: "Data Source Type", label: "데이터 출처", type: "select" },
+  { key: "Dimension", label: "차원", type: "select" },
+  { key: "License", label: "라이선스", type: "select" },
+  { key: "Total", label: "총 이미지 수", type: "number" },
+  { key: "Normal", label: "정상", type: "number" },
+  { key: "Abnormal", label: "비정상", type: "number" },
+  { key: "Class", label: "클래스 수", type: "number" },
+  { key: "AI based defect types count", label: "결함 종류 수", type: "number" },
+  { key: "Year", label: "연도", type: "number" },
+  { key: "isImage", label: "이미지 여부", type: "bool", def: true },
+  { key: "isDownloadable", label: "다운로드 가능", type: "bool", def: true },
+  { key: "isAutomotive", label: "자동차 관련", type: "bool", def: false },
+  { key: "Automotive process", label: "자동차 공정", type: "text" },
+  { key: "description", label: "설명(본문)", type: "textarea" },
+];
+const MULTI_KEYS = new Set(FORM_FIELDS.filter(f => f.type === "multi").map(f => f.key));
+
+function allValues(key) {
+  const s = new Set();
+  DATA.forEach(d => asArray(d[key]).forEach(v => s.add(v)));
+  return [...s].sort((a, b) => a.localeCompare(b));
+}
+function slugify(name) {
+  return (name || "dataset").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g, "-").replace(/^-+|-+$/g, "") || "dataset";
+}
+
+function buildAddForm() {
+  const panel = $("#add-panel");
+  panel.innerHTML = "";
+
+  const head = el("div", "modal-head");
+  const hl = el("div");
+  hl.appendChild(el("h2", null, "데이터셋 추가"));
+  hl.appendChild(el("div", "meta", "입력 후 미리보기로 확인하거나 GitHub에 PR로 제출하세요"));
+  head.appendChild(hl);
+  const close = el("button", "modal-close", "✕"); close.onclick = closeAddModal;
+  head.appendChild(close);
+  panel.appendChild(head);
+
+  panel.appendChild(el("div", "add-note",
+    "제출하면 GitHub에 새 파일(PR)로 올라가고, 관리자가 검토·병합한 뒤 재빌드하면 사이트에 반영됩니다. " +
+    "여기서의 ‘미리보기 추가’는 이 브라우저 세션에서만 보입니다(저장 아님)."));
+
+  const grid = el("div", "form-grid");
+  FORM_FIELDS.forEach(f => {
+    const field = el("div", "field" + (f.type === "textarea" ? " wide" : ""));
+    const lab = el("label", null, f.label + (f.required ? " *" : ""));
+    field.appendChild(lab);
+
+    if (f.type === "number") {
+      const inp = el("input"); inp.type = "number"; inp.dataset.field = f.key; field.appendChild(inp);
+    } else if (f.type === "textarea") {
+      const ta = el("textarea"); ta.dataset.field = f.key; ta.rows = 3; field.appendChild(ta);
+    } else if (f.type === "bool") {
+      const sel = el("select"); sel.dataset.field = f.key;
+      [["예", "true"], ["아니오", "false"]].forEach(([t, v]) => { const o = el("option", null, t); o.value = v; if ((v === "true") === !!f.def) o.selected = true; sel.appendChild(o); });
+      field.appendChild(sel);
+    } else if (f.type === "select" || f.type === "multi") {
+      const inp = el("input"); inp.type = "text"; inp.dataset.field = f.key;
+      inp.setAttribute("autocomplete", "off");
+      if (f.type === "multi") inp.placeholder = "쉼표로 구분 (여러 개 가능)";
+      // 자동완성 datalist
+      const dlId = "dl-" + f.key.replace(/[^a-z]/gi, "");
+      const dl = el("datalist"); dl.id = dlId;
+      allValues(f.key).forEach(v => { const o = el("option"); o.value = v; dl.appendChild(o); });
+      inp.setAttribute("list", dlId);
+      field.appendChild(inp); field.appendChild(dl);
+      // 멀티: 기존 값 칩 클릭으로 추가
+      if (f.type === "multi") {
+        const sugg = el("div", "sugg");
+        allValues(f.key).slice(0, 12).forEach(v => {
+          const c = el("button", "sugg-chip", v); c.type = "button";
+          c.onclick = () => {
+            const cur = inp.value.split(",").map(s => s.trim()).filter(Boolean);
+            if (!cur.includes(v)) cur.push(v);
+            inp.value = cur.join(", ");
+          };
+          sugg.appendChild(c);
+        });
+        field.appendChild(sugg);
+      }
+    } else {
+      const inp = el("input"); inp.type = f.type === "url" ? "url" : "text"; inp.dataset.field = f.key; field.appendChild(inp);
+    }
+    grid.appendChild(field);
+  });
+  panel.appendChild(grid);
+
+  const actions = el("div", "add-actions");
+  const bPrev = el("button", "ghost", "미리보기에 추가"); bPrev.onclick = onPreviewAdd;
+  const bRec = el("button", "ghost", "레코드 JSON 내려받기"); bRec.onclick = onDownloadRecord;
+  const bData = el("button", "ghost", "전체 data.js 내려받기"); bData.onclick = onDownloadDataJs;
+  const bPR = el("button", "modal-link", "GitHub에 PR로 제출 ↗"); bPR.onclick = onSubmitGitHub; bPR.style.marginTop = "0";
+  actions.append(bPrev, bRec, bData, bPR);
+  panel.appendChild(actions);
+
+  panel.appendChild(el("div", "add-status"));
+}
+
+function collectAddForm() {
+  const rec = {};
+  let nameErr = false;
+  FORM_FIELDS.forEach(f => {
+    const node = $(`#add-panel [data-field="${f.key}"]`);
+    let v = node ? node.value : "";
+    if (f.type === "multi") rec[f.key] = v.split(",").map(s => s.trim()).filter(Boolean);
+    else if (f.type === "number") { v = v.replace(/,/g, "").trim(); rec[f.key] = v === "" ? null : (parseInt(v, 10) || 0); }
+    else if (f.type === "bool") rec[f.key] = v === "true";
+    else rec[f.key] = (v || "").trim();
+  });
+  if (!rec.Name) nameErr = true;
+  // data.js 스키마 정합성 보강
+  rec["Model DB"] = []; rec["in-lab"] = ""; rec["Created time"] = ""; rec["Last edited time"] = "";
+  return { rec, nameErr };
+}
+function cleanRecord(d) {
+  const o = {}; Object.keys(d).forEach(k => { if (!k.startsWith("_")) o[k] = d[k]; });
+  return o;
+}
+function setStatus(msg, ok) {
+  const s = $("#add-panel .add-status"); if (!s) return;
+  s.textContent = msg; s.className = "add-status " + (ok ? "ok" : "warn");
+}
+function download(filename, text, mime) {
+  const blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function onPreviewAdd() {
+  const { rec, nameErr } = collectAddForm();
+  if (nameErr) return setStatus("‘이름’은 필수입니다.", false);
+  rec._id = DATA.length; rec._added = true;
+  rec._search = [rec.Name, ...(rec["AI based Defect Type"] || []), ...(rec["Material Domain"] || []), ...(rec["Industry Domain"] || []), ...(rec["Task"] || [])].join(" ").toLowerCase();
+  DATA.push(rec);
+  render();
+  setStatus(`‘${rec.Name}’ 미리보기 추가됨 (세션 전용). 닫고 이름으로 검색해 확인하세요.`, true);
+}
+function onDownloadRecord() {
+  const { rec, nameErr } = collectAddForm();
+  if (nameErr) return setStatus("‘이름’은 필수입니다.", false);
+  download(slugify(rec.Name) + ".json", JSON.stringify(cleanRecord(rec), null, 2), "application/json");
+  setStatus("레코드 JSON 내려받음 → submissions/ 폴더에 넣고 커밋하면 됩니다.", true);
+}
+function onDownloadDataJs() {
+  const { rec, nameErr } = collectAddForm();
+  if (nameErr) return setStatus("‘이름’은 필수입니다.", false);
+  const list = DATA.map(cleanRecord);
+  if (!DATA.some(d => d._added && d.Name === rec.Name)) list.push(cleanRecord(rec));
+  const out = "// 자동 생성 파일 — convert.py 로 재생성. 직접 수정 금지.\n" +
+    "window.DATASETS = " + JSON.stringify(list, null, 1) + ";\n" +
+    "window.DATASETS_META = { count: " + list.length + ", source: \"manual-export\" };\n";
+  download("data.js", out, "text/javascript;charset=utf-8");
+  setStatus("전체 data.js 내려받음 → web/data.js 를 교체 후 커밋하면 즉시 반영됩니다.", true);
+}
+function onSubmitGitHub() {
+  const { rec, nameErr } = collectAddForm();
+  if (nameErr) return setStatus("‘이름’은 필수입니다.", false);
+  if (GITHUB.owner === "YOUR-ORG" || GITHUB.repo === "YOUR-REPO") {
+    return setStatus("먼저 app.js 상단 GITHUB 설정(owner/repo)을 연구실 저장소 정보로 수정하세요.", false);
+  }
+  const filename = `${GITHUB.dir}/${slugify(rec.Name)}.json`;
+  const value = encodeURIComponent(JSON.stringify(cleanRecord(rec), null, 2));
+  const url = `https://github.com/${GITHUB.owner}/${GITHUB.repo}/new/${GITHUB.branch}?filename=${encodeURIComponent(filename)}&value=${value}`;
+  window.open(url, "_blank", "noopener");
+  setStatus("GitHub 새 파일 작성 화면을 열었습니다. 하단에서 ‘Propose new file’ → PR 생성하세요.", true);
+}
+function openAddModal() { buildAddForm(); $("#add-modal").classList.remove("hidden"); }
+function closeAddModal() { $("#add-modal").classList.add("hidden"); }
+
+/* ---------------- 메인 렌더 ---------------- */
+function render() {
+  buildBoolFilters();
+  buildFacets();
+  buildActiveFilters();
+  const rows = filtered();
+  $("#count-badge").textContent = `${rows.length} / ${DATA.length}`;
+  $("#result-info").textContent = `${rows.length}개 데이터셋`;
+
+  const host = $("#results"); host.innerHTML = "";
+  if (!rows.length) {
+    host.appendChild(el("div", "empty", "조건에 맞는 데이터셋이 없습니다. 필터를 조정해 보세요."));
+  } else {
+    host.appendChild(state.view === "table" ? renderTable(rows) : renderCards(rows));
+  }
+  renderStats(rows);
+}
+
+/* ---------------- CSV 내보내기 ---------------- */
+function exportCSV() {
+  const rows = filtered();
+  const cols = ["Name", ...ALL_FACETS.map(f => f.key), "Total", "Normal", "Abnormal", "Year", "Link"];
+  const esc = s => { s = (s == null ? "" : Array.isArray(s) ? s.join("; ") : String(s)); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const lines = [cols.join(",")];
+  rows.forEach(d => lines.push(cols.map(c => esc(d[c])).join(",")));
+  const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `datasets_filtered_${rows.length}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ---------------- 이벤트 바인딩 ---------------- */
+function init() {
+  // 정렬 옵션
+  const sortSel = $("#sort");
+  SORTS.forEach(s => { const o = el("option", null, s.label); o.value = s.key; sortSel.appendChild(o); });
+  sortSel.value = state.sortKey;
+  sortSel.onchange = () => { state.sortKey = sortSel.value; render(); };
+  $("#sort-dir").onclick = () => { state.sortDir *= -1; $("#sort-dir").textContent = state.sortDir < 0 ? "↓" : "↑"; render(); };
+
+  // 검색 (디바운스)
+  let t;
+  $("#search").oninput = e => { clearTimeout(t); t = setTimeout(() => { state.q = e.target.value.trim().toLowerCase(); render(); }, 120); };
+
+  // 뷰 토글
+  document.querySelectorAll(".view-toggle button").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".view-toggle button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active"); state.view = btn.dataset.view; render();
+    };
+  });
+
+  // 초기화
+  $("#btn-reset").onclick = () => {
+    state.q = ""; $("#search").value = "";
+    ALL_FACETS.forEach(f => state.facets[f.key].clear());
+    state.bools = {}; state.showAll = {};
+    render();
+  };
+
+  // 통계 토글
+  $("#btn-stats").onclick = () => { $("#stats").classList.toggle("hidden"); $("#btn-stats").textContent = $("#stats").classList.contains("hidden") ? "통계 ▾" : "통계 ▴"; render(); };
+
+  // 내보내기
+  $("#btn-export").onclick = exportCSV;
+
+  // 테마
+  const applyTheme = th => { document.documentElement.setAttribute("data-theme", th); try { localStorage.setItem("ddb-theme", th); } catch (e) {} };
+  let theme = "light";
+  try { theme = localStorage.getItem("ddb-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch (e) {}
+  applyTheme(theme);
+  $("#btn-theme").onclick = () => applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+
+  // 데이터셋 추가 폼
+  $("#btn-add").onclick = openAddModal;
+  $("#add-modal").addEventListener("click", e => { if (e.target.dataset.closeAdd !== undefined) closeAddModal(); });
+
+  // 모달 닫기
+  $("#modal").addEventListener("click", e => { if (e.target.dataset.close !== undefined) closeModal(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { closeModal(); closeAddModal(); } });
+
+  // Liquid Glass 굴절: SVG displacement-as-backdrop 는 Chromium 만 지원 → 그때만 활성화
+  const isChromium = !!(navigator.userAgentData && navigator.userAgentData.brands &&
+    navigator.userAgentData.brands.some(b => /Chromium/i.test(b.brand)));
+  const reduceTransparency = matchMedia("(prefers-reduced-transparency: reduce)").matches;
+  if (isChromium && !reduceTransparency) document.documentElement.classList.add("refraction");
+
+  // 포인터 추종 스페큘러 하이라이트 (카드)
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    $("#results").addEventListener("pointermove", e => {
+      const card = e.target.closest && e.target.closest(".card");
+      if (!card) return;
+      const r = card.getBoundingClientRect();
+      card.style.setProperty("--mx", ((e.clientX - r.left) / r.width * 100) + "%");
+      card.style.setProperty("--my", ((e.clientY - r.top) / r.height * 100) + "%");
+    });
+  }
+
+  render();
+}
+
+init();
+
+</script>
+</body>
+</html>

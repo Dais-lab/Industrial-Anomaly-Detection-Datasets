@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>자동차 부품 제조 결함탐지 데이터 분류체계 · DaiS Lab</title>
+  <meta name="description" content="자동차 부품 제조 특화 이미지 결함탐지 AI모델 학습을 위한 데이터 분류체계" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 유리가 굴절할 컬러풀한 배경 (오로라/메시 그라데이션) -->
+  <div class="bg-aurora" aria-hidden="true">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+    <span class="blob b4"></span>
+    <div class="bg-grain"></div>
+  </div>
+
+  <!-- Liquid Glass 굴절 필터 (Chromium에서만 .refraction 클래스 통해 적용) -->
+  <svg class="svg-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="glass-refraction" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.009 0.011" numOctaves="2" seed="11" result="noise" />
+        <feGaussianBlur in="noise" stdDeviation="2.2" result="softNoise" />
+        <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="22" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
+
+  <header class="topbar">
+    <div class="brand">
+      <h1>자동차 부품 제조 특화 이미지 결함탐지 AI모델 학습을 위한 데이터 분류체계</h1>
+      <span class="sub">Data Taxonomy for Automotive-Parts Manufacturing Defect-Detection AI</span>
+    </div>
+    <div class="top-actions">
+      <span id="count-badge" class="badge">— / —</span>
+      <button id="btn-add" class="ghost primary" type="button">+ 데이터셋 추가</button>
+      <button id="btn-stats" class="ghost" type="button">통계 ▾</button>
+      <button id="btn-export" class="ghost" type="button">결과 내보내기</button>
+      <button id="btn-theme" class="ghost icon" type="button" title="테마 전환">◐</button>
+    </div>
+  </header>
+
+  <section id="stats" class="stats hidden"></section>
+
+  <main class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="search-wrap">
+        <input id="search" type="search" placeholder="이름 · 결함 유형 검색…" autocomplete="off" />
+      </div>
+
+      <div class="bool-filters" id="bool-filters"></div>
+
+      <div class="facets" id="facets"></div>
+
+      <button id="btn-reset" class="reset" type="button">필터 초기화</button>
+    </aside>
+
+    <section class="content">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span id="result-info" class="result-info"></span>
+          <div id="active-filters" class="active-filters"></div>
+        </div>
+        <div class="toolbar-right">
+          <label class="sort">
+            정렬
+            <select id="sort"></select>
+            <button id="sort-dir" class="ghost icon" type="button" title="오름/내림차순">↓</button>
+          </label>
+          <div class="view-toggle" role="group" aria-label="보기 전환">
+            <button data-view="table" class="active" type="button">표</button>
+            <button data-view="card" type="button">카드</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="results"></div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel" id="modal-panel"></div>
+  </div>
+
+  <!-- 데이터셋 추가 폼 -->
+  <div id="add-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close-add></div>
+    <div class="modal-panel" id="add-panel"></div>
+  </div>
+
+  <footer class="foot">
+    <span>University of Ulsan · Data analytics and intelligent Systems · DaiS Lab</span>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

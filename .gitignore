@@ -30,3 +30,10 @@ Temporary Items
 ### macOS Patch ###
 # iCloud generated files
 *.icloud
+
+### Project ###
+__pycache__/
+*.pyc
+# 로컬 노션 내보내기 원본(레포에는 data-source/ 의 CSV만 둠)
+개인 페이지 & 공유된 페이지/
+DatasetsDB.zip
