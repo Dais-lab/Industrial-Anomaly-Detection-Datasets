@@ -1,22 +1,20 @@
 # Industrial Anomaly Detection Datasets
 
-자동차 부품 제조 특화 이미지 결함탐지 AI모델 학습을 위한 **데이터셋 분류체계** ·
+자동차 부품 제조 특화 이미지 결함탐지 AI모델 학습을 위한 **데이터셋 분류체계**  
 *Data Taxonomy for Automotive-Parts Manufacturing Defect-Detection AI*
 
 > **🔗 Live site:** https://dais-lab.github.io/Industrial-Anomaly-Detection-Datasets/
-> (Settings → Pages 활성화 후 동작 — 아래 *Deploy* 참고)
 
-산업 비전 결함/이상탐지(Anomaly Detection) 데이터셋을 체계적으로 정리·검색하는 인터랙티브 카탈로그.
+산업 비전 결함/이상탐지(Anomaly Detection) 데이터셋을 체계적으로 정리·검색하는 인터랙티브 카탈로그.  
 University of Ulsan · Data analytics and intelligent Systems · **DaiS Lab**.
 
-## ✨ 기능
+## 기능
 
-- 컬럼별 패싯 필터(산업 분야·태스크·결함 범주·모달리티·소재·어노테이션·공정·출처·차원·라이선스), 멀티선택 + 동적 카운트
+- 컬럼별 패싯 필터(산업 분야·태스크·결함 범주·모달리티·소재·어노테이션·공정·출처·차원·라이선스), 멀티선택 + 카운트
 - 텍스트 검색 / 정렬 / 표·카드 뷰 / 상세 모달 / 통계 분포 / 필터 결과 CSV 내보내기
 - **데이터셋 추가 폼** + GitHub PR 제출 (아래 *Contributing*)
-- Apple *Liquid Glass* 디자인, 다크/라이트 테마
 
-## 📁 구조
+## 구조
 
 ```
 .
@@ -39,25 +37,6 @@ University of Ulsan · Data analytics and intelligent Systems · **DaiS Lab**.
 3. 머지되면 Pages 워크플로가 `convert.py`(submissions 병합)를 돌려 **사이트가 자동 갱신**됩니다.
 
 > 즉 *누구나 제출 가능, 반영은 멤버 승인 후*. (`main` 은 브랜치 보호로 PR·승인 필수)
-
-## 🛠 로컬 개발
-
-```bash
-python3 convert.py                 # data-source CSV(+submissions) → web/data.js
-python3 build_standalone.py        # standalone.html 갱신
-cd web && python3 -m http.server 8000   # http://localhost:8000
-```
-의존성 없음(Python 표준 라이브러리 + 바닐라 JS).
-
-## 🚀 Deploy (최초 1회)
-
-Settings → **Pages → Build and deployment → Source: GitHub Actions** 로 설정하면,
-이후 `main` 머지 시 `.github/workflows/pages.yml` 가 자동 배포합니다.
-
-## 🔒 데이터 정본 갱신 (노션 → CSV)
-
-대량 갱신은 Notion `Datasets DB` 에서 작업 후 CSV로 내보내 `data-source/` 의 CSV를 교체하고
-`convert.py` 를 돌립니다. (행별 본문 설명까지 옮기려면 Notion "Markdown & CSV (하위 페이지 포함)" 내보내기)
 
 ## 📄 License / Data
 
