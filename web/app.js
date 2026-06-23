@@ -316,6 +316,24 @@ function fmtVal(v) {
   if (typeof v === "number") return v.toLocaleString("en-US");
   return v || "—";
 }
+/* Link 필드에서 URL을 모두 추출 + 앞 라벨로 종류 판별 (한 셀에 데이터셋/논문 등 여러 링크 대응) */
+/* 용어 통일: 논문 계열 → "논문 URL", 그 외(다운로드·원본·repo 등) → "데이터셋 URL" */
+function linkLabel(ctx) {
+  const t = (ctx || "").toLowerCase();
+  if (/(paper|논문|arxiv|ieee|doi|stamp|article)/.test(t)) return "논문 URL";
+  return "데이터셋 URL";
+}
+function parseLinks(raw) {
+  raw = (raw || "").trim();
+  if (!raw) return [];
+  const re = /https?:\/\/[^\s,]+/g;
+  const found = []; let m, last = 0;
+  while ((m = re.exec(raw))) {
+    found.push({ url: m[0].replace(/[).,;]+$/, ""), ctx: raw.slice(last, m.index) });
+    last = re.lastIndex;
+  }
+  return found.map(o => ({ url: o.url, label: linkLabel(o.ctx) }));
+}
 function openModal(d) {
   const panel = $("#modal-panel");
   panel.innerHTML = "";
@@ -360,10 +378,15 @@ function openModal(d) {
     scroll.appendChild(sec);
   });
 
-  if (d.Link) {
-    const a = el("a", "modal-link", "원본 데이터셋 열기 ↗");
-    a.href = d.Link; a.target = "_blank"; a.rel = "noopener";
-    scroll.appendChild(a);
+  const links = parseLinks(d.Link);
+  if (links.length) {
+    const lw = el("div", "modal-links");
+    links.forEach(l => {
+      const a = el("a", "modal-link", l.label + " ↗");
+      a.href = l.url; a.target = "_blank"; a.rel = "noopener";
+      lw.appendChild(a);
+    });
+    scroll.appendChild(lw);
   }
   panel.appendChild(scroll);
   $("#modal").classList.remove("hidden");
