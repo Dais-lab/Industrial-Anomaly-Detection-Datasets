@@ -302,13 +302,16 @@ a:hover { text-decoration: underline; }
 /* ---------------- 표 ---------------- */
 .table-wrap {
   overflow-x: auto; border-radius: var(--radius);
+  cursor: grab;   /* 좌우 드래그로 가로 스크롤 */
   background: var(--glass-bg);
   -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat));
   backdrop-filter: blur(var(--blur)) saturate(var(--sat));
   border: 1px solid var(--glass-brd);
   box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-rim);
 }
-table { border-collapse: collapse; width: 100%; font-size: 13px; table-layout: fixed; min-width: 880px; }
+.table-wrap.dragging { cursor: grabbing; user-select: none; }
+/* 칸이 쪼그라들어 칩 글자가 줄바꿈되지 않도록 충분한 최소 폭 — 좁으면 .table-wrap이 가로 스크롤 */
+table { border-collapse: collapse; width: 100%; font-size: 13px; table-layout: fixed; min-width: 1500px; }
 thead th {
   text-align: left; padding: 12px 14px; color: var(--text-dim); font-weight: 700; white-space: nowrap;
   background: var(--glass-bg-strong);
@@ -329,10 +332,8 @@ td.name { max-width: 230px; }
 tbody tr:hover .ds-name { color: var(--accent); }
 tbody tr:hover .ds-name::after { content: " ›"; color: var(--accent); font-weight: 700; }
 
-/* 칩 컨테이너는 칸 너비를 넘지 않게(고정 레이아웃에서 옆 칸 침범 방지) */
+/* 칩 컨테이너는 칸 너비를 넘지 않게(여러 칩은 칸 안에서 줄바꿈, 칩 글자 자체는 한 줄 유지) */
 .cell-chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 100%; min-width: 0; }
-/* 긴 칩('Structural Anomaly' 등)은 칸 안에서 줄바꿈 — 옆 칸으로 넘치지 않도록 */
-.cell-chips .chip { white-space: normal; }
 
 /* ---------------- 칩 ---------------- */
 .chip {
