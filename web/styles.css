@@ -329,7 +329,10 @@ td.name { max-width: 230px; }
 tbody tr:hover .ds-name { color: var(--accent); }
 tbody tr:hover .ds-name::after { content: " ›"; color: var(--accent); font-weight: 700; }
 
-.cell-chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 280px; }
+/* 칩 컨테이너는 칸 너비를 넘지 않게(고정 레이아웃에서 옆 칸 침범 방지) */
+.cell-chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 100%; min-width: 0; }
+/* 긴 칩('Structural Anomaly' 등)은 칸 안에서 줄바꿈 — 옆 칸으로 넘치지 않도록 */
+.cell-chips .chip { white-space: normal; }
 
 /* ---------------- 칩 ---------------- */
 .chip {
