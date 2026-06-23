@@ -236,30 +236,24 @@ function renderTable(rows) {
   return wrap;
 }
 
-/* 표를 마우스 좌우 드래그로 가로 스크롤 — 좁은 화면에서 칸 쪼그라듦 없이 밀어서 보기 */
+/* 표를 마우스 좌우 드래그로 가로 스크롤 — 좁은 화면에서 칸 쪼그라듦 없이 밀어서 보기.
+   ⚠️ setPointerCapture는 자식 행의 click을 가로채 모달을 막으므로 사용하지 않음.
+   마우스 이벤트 기반 + window mouseup으로 안전하게 처리. */
 function enableDragScroll(wrap) {
   let down = false, startX = 0, startLeft = 0, moved = false;
-  wrap.addEventListener("pointerdown", e => {
-    if (e.pointerType !== "mouse" || e.button !== 0) return;  // 마우스 좌클릭만(터치패드/터치는 native 스크롤)
-    down = true; moved = false; startX = e.clientX; startLeft = wrap.scrollLeft;
-    wrap.classList.add("dragging");
-    try { wrap.setPointerCapture(e.pointerId); } catch (_) {}
+  wrap.addEventListener("mousedown", e => {
+    if (e.button !== 0) return;                  // 좌클릭만
+    down = true; moved = false; startX = e.pageX; startLeft = wrap.scrollLeft;
   });
-  wrap.addEventListener("pointermove", e => {
+  wrap.addEventListener("mousemove", e => {
     if (!down) return;
-    const dx = e.clientX - startX;
-    if (Math.abs(dx) > 4) moved = true;          // 4px 넘게 움직이면 '드래그'로 간주
-    wrap.scrollLeft = startLeft - dx;
+    const dx = e.pageX - startX;
+    if (Math.abs(dx) > 5) { moved = true; wrap.classList.add("dragging"); }  // 5px 초과 시 '드래그'
+    if (moved) { wrap.scrollLeft = startLeft - dx; e.preventDefault(); }
   });
-  const end = e => {
-    if (!down) return;
-    down = false; wrap.classList.remove("dragging");
-    try { wrap.releasePointerCapture(e.pointerId); } catch (_) {}
-  };
-  wrap.addEventListener("pointerup", end);
-  wrap.addEventListener("pointercancel", end);
-  // 드래그였으면 뒤따르는 click을 막아 행 상세 모달이 열리지 않게(캡처 단계에서 차단)
-  wrap.addEventListener("click", e => { if (moved) { e.stopPropagation(); moved = false; } }, true);
+  window.addEventListener("mouseup", () => { down = false; wrap.classList.remove("dragging"); });
+  // 드래그였을 때만 뒤따르는 click을 차단(평범한 클릭은 그대로 통과 → 행 상세 모달 정상)
+  wrap.addEventListener("click", e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
 }
 
 function renderCards(rows) {
