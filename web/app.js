@@ -40,15 +40,15 @@ const SORTS = [
 
 /* 표 컬럼 */
 const COLUMNS = [
-  { key: "Name",                 label: "이름",      type: "name",  w: "20%" },
+  { key: "Name",                 label: "이름",      type: "name",  w: "18%" },
   { key: "Industry Domain",      label: "산업 분야",  type: "chips", w: "10%" },
   { key: "Process Domain",       label: "공정",      type: "chips", w: "13%" },
-  { key: "Defect Category",      label: "결함 범주",  type: "chips", w: "10%" },
+  { key: "Defect Category",      label: "결함 범주",  type: "chips", w: "13%" },
   { key: "AI based Defect Type", label: "결함 유형",  type: "chips", w: "15%" },
   { key: "Image Modality",       label: "모달리티",   type: "chips", w: "7%" },
   { key: "Total",                label: "총 데이터 수", type: "num",  w: "8%" },
   { key: "Year",                 label: "연도",      type: "year",  w: "5%" },
-  { key: "License",              label: "라이선스",   type: "text",  w: "12%" },
+  { key: "License",              label: "라이선스",   type: "text",  w: "11%" },
 ];
 
 /* ---------------- 상태 ---------------- */

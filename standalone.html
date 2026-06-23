@@ -337,7 +337,10 @@ td.name { max-width: 230px; }
 tbody tr:hover .ds-name { color: var(--accent); }
 tbody tr:hover .ds-name::after { content: " ›"; color: var(--accent); font-weight: 700; }
 
-.cell-chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 280px; }
+/* 칩 컨테이너는 칸 너비를 넘지 않게(고정 레이아웃에서 옆 칸 침범 방지) */
+.cell-chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 100%; min-width: 0; }
+/* 긴 칩('Structural Anomaly' 등)은 칸 안에서 줄바꿈 — 옆 칸으로 넘치지 않도록 */
+.cell-chips .chip { white-space: normal; }
 
 /* ---------------- 칩 ---------------- */
 .chip {
@@ -2750,7 +2753,7 @@ window.DATASETS = [
    "Manufacturing"
   ],
   "Last edited time": "2025년 11월 15일 오전 10:20",
-  "License": "CC BY-NC-SA 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=%EC%9A%A9%EC%A0%91+%EA%B2%B0%ED%95%A8&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=&aihubDataSe=data&dataSetSn=71761",
   "Material Domain": [
    "Metal",
@@ -2806,7 +2809,7 @@ window.DATASETS = [
    "Manufacturing"
   ],
   "Last edited time": "2026년 4월 24일 오후 5:13",
-  "License": "CC BY-NC-SA 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=%EC%9A%A9%EC%A0%91+%EA%B2%B0%ED%95%A8&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=&aihubDataSe=data&dataSetSn=71761",
   "Material Domain": [
    "Metal",
@@ -2863,7 +2866,7 @@ window.DATASETS = [
    "Manufacturing"
   ],
   "Last edited time": "2025년 11월 16일 오후 8:22",
-  "License": "CC BY-NC-SA 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=%EC%9A%A9%EC%A0%91+%EA%B2%B0%ED%95%A8&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=&aihubDataSe=data&dataSetSn=71761",
   "Material Domain": [
    "Aluminum"
@@ -2928,7 +2931,7 @@ window.DATASETS = [
    "Manufacturing"
   ],
   "Last edited time": "2025년 11월 7일 오전 12:53",
-  "License": "CC BY-NC 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=REALM012&aihubDataSe=data&dataSetSn=71690",
   "Material Domain": [
    "Metal",
@@ -2995,7 +2998,7 @@ window.DATASETS = [
    "Electronics"
   ],
   "Last edited time": "2025년 11월 7일 오전 12:54",
-  "License": "CC BY-NC 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=REALM012&aihubDataSe=data&dataSetSn=71687",
   "Material Domain": [
    "Multi-material"
@@ -3433,7 +3436,7 @@ window.DATASETS = [
    "Heavy Industry"
   ],
   "Last edited time": "2025년 11월 7일 오전 12:56",
-  "License": "CC BY-NC 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=REALM012&aihubDataSe=data&dataSetSn=71447",
   "Material Domain": [
    "Metal",
@@ -3492,7 +3495,7 @@ window.DATASETS = [
    "Automotive"
   ],
   "Last edited time": "2025년 11월 27일 오후 12:41",
-  "License": "CC BY-NC 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=581",
   "Material Domain": [
    "Multi-material"
@@ -3547,7 +3550,7 @@ window.DATASETS = [
    "Manufacturing"
   ],
   "Last edited time": "2025년 11월 7일 오전 1:03",
-  "License": "CC BY-NC 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=&topMenu=&srchOptnCnd=OPTNCND001&searchKeyword=%EC%A0%9C%EC%A1%B0&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&aihubDataSe=data&dataSetSn=71802",
   "Material Domain": [
    "Multi-material"
@@ -3606,7 +3609,7 @@ window.DATASETS = [
    "Transportation"
   ],
   "Last edited time": "2025년 11월 16일 오후 8:22",
-  "License": "CC BY-NC 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&&srchDataRealmCode=REALM001&aihubDataSe=data&dataSetSn=71867",
   "Material Domain": [
    "Metal"
@@ -3662,7 +3665,7 @@ window.DATASETS = [
    "Transportation"
   ],
   "Last edited time": "2025년 11월 8일 오후 8:48",
-  "License": "CC BY-NC 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?pageIndex=1&currMenu=115&topMenu=100&srchOptnCnd=OPTNCND001&searchKeyword=&srchDetailCnd=DETAILCND001&srchOrder=ORDER001&srchPagePer=20&srchDataRealmCode=REALM001&srchDataRealmCode=REALM012&aihubDataSe=data&dataSetSn=71868",
   "Material Domain": [
    "Concrete"
@@ -3846,7 +3849,7 @@ window.DATASETS = [
    "Heavy Industry"
   ],
   "Last edited time": "2025년 11월 8일 오후 8:55",
-  "License": "CC BY-NC-SA 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=71769",
   "Material Domain": [
    "Concrete",
@@ -3904,7 +3907,7 @@ window.DATASETS = [
    "Heavy Industry"
   ],
   "Last edited time": "2025년 11월 8일 오후 8:57",
-  "License": "CC BY-NC-SA 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://www.aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&dataSetSn=162",
   "Material Domain": [
    "Concrete",
@@ -4476,7 +4479,7 @@ window.DATASETS = [
    "Automotive"
   ],
   "Last edited time": "2025년 11월 27일 오후 12:41",
-  "License": "CC BY-NC-SA 4.0",
+  "License": "AI Hub 이용약관",
   "Link": "https://aihub.or.kr/aihubdata/data/view.do?dataSetSn=578",
   "Material Domain": [
    "Metal",
@@ -4740,7 +4743,7 @@ window.DATASETS = [
    "Scratch"
   ],
   "AI based defect types count": 5,
-  "Abnormal": 608,
+  "Abnormal": 575,
   "Annotation Format": [
    "Label"
   ],
@@ -4748,7 +4751,7 @@ window.DATASETS = [
    "Image-level"
   ],
   "Automotive process": "Inspection",
-  "Class": 6,
+  "Class": 5,
   "Created time": "2025년 11월 22일 오후 8:39",
   "Data Source Type": "Real",
   "Defect Category": [
@@ -4777,7 +4780,7 @@ window.DATASETS = [
   "Task": [
    "Classification"
   ],
-  "Total": 608,
+  "Total": 575,
   "Year": 2021,
   "in-lab": "",
   "isAutomotive": true,
@@ -5238,15 +5241,15 @@ const SORTS = [
 
 /* 표 컬럼 */
 const COLUMNS = [
-  { key: "Name",                 label: "이름",      type: "name",  w: "20%" },
+  { key: "Name",                 label: "이름",      type: "name",  w: "18%" },
   { key: "Industry Domain",      label: "산업 분야",  type: "chips", w: "10%" },
   { key: "Process Domain",       label: "공정",      type: "chips", w: "13%" },
-  { key: "Defect Category",      label: "결함 범주",  type: "chips", w: "10%" },
+  { key: "Defect Category",      label: "결함 범주",  type: "chips", w: "13%" },
   { key: "AI based Defect Type", label: "결함 유형",  type: "chips", w: "15%" },
   { key: "Image Modality",       label: "모달리티",   type: "chips", w: "7%" },
   { key: "Total",                label: "총 데이터 수", type: "num",  w: "8%" },
   { key: "Year",                 label: "연도",      type: "year",  w: "5%" },
-  { key: "License",              label: "라이선스",   type: "text",  w: "12%" },
+  { key: "License",              label: "라이선스",   type: "text",  w: "11%" },
 ];
 
 /* ---------------- 상태 ---------------- */
