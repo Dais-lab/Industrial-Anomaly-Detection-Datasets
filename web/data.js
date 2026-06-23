@@ -1669,13 +1669,13 @@ window.DATASETS = [
    "Cardboard",
    "Fastening",
    "Missing",
-   "Netting Multiple",
+   "Multiple",
    "Obstruction",
    "Operator",
    "Unclipped"
   ],
   "AI based defect types count": 8,
-  "Abnormal": null,
+  "Abnormal": 878,
   "Annotation Format": [
    "Mask"
   ],
@@ -1688,7 +1688,8 @@ window.DATASETS = [
   "Created time": "2025년 10월 24일 오후 4:35",
   "Data Source Type": "Real",
   "Defect Category": [
-   "Logical Anomaly"
+   "Logical Anomaly",
+   "Structural Anomaly"
   ],
   "Dimension": "2D",
   "Image Modality": [
@@ -1699,12 +1700,12 @@ window.DATASETS = [
   ],
   "Last edited time": "2025년 11월 27일 오후 12:41",
   "License": "CC-BY-NC-SA-4.0",
-  "Link": "https://zenodo.org/records/8099580",
+  "Link": "https://zenodo.org/records/10459003",
   "Material Domain": [
    "Metal"
   ],
   "Model DB": [],
-  "Normal": null,
+  "Normal": 3072,
   "Process Domain": [
    "Quality Inspection"
   ],
@@ -1837,10 +1838,9 @@ window.DATASETS = [
  {
   "Name": "OSPD",
   "AI based Defect Type": [
-   "Hole",
-   "Missing"
+   "Missing Hole"
   ],
-  "AI based defect types count": 2,
+  "AI based defect types count": 1,
   "Abnormal": null,
   "Annotation Format": [
    "Bounding Box",
@@ -1852,7 +1852,7 @@ window.DATASETS = [
    "Pixel-level"
   ],
   "Automotive process": "Stamping",
-  "Class": null,
+  "Class": 1,
   "Created time": "2025년 10월 27일 오후 2:35",
   "Data Source Type": "Real & Synthetic",
   "Defect Category": [
@@ -1866,7 +1866,7 @@ window.DATASETS = [
    "Automotive"
   ],
   "Last edited time": "2025년 11월 27일 오후 12:40",
-  "License": "CC-BY-4.0",
+  "License": "N/A",
   "Link": "Download Link: https://tinyurl.com/hm6xatd7 / Paper: https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10711790",
   "Material Domain": [
    "Metal",
@@ -1884,7 +1884,7 @@ window.DATASETS = [
    "Object-Detection",
    "Segmentation"
   ],
-  "Total": null,
+  "Total": 21000,
   "Year": 2024,
   "in-lab": "",
   "isAutomotive": true,
@@ -2877,6 +2877,7 @@ window.DATASETS = [
   "AI based defect types count": 4,
   "Abnormal": 632694,
   "Annotation Format": [
+   "Bounding Box",
    "Polygon"
   ],
   "Annotation Level": [
@@ -3856,7 +3857,7 @@ window.DATASETS = [
    "Scratch",
    "Sealing"
   ],
-  "AI based defect types count": 12,
+  "AI based defect types count": 10,
   "Abnormal": 110000,
   "Annotation Format": [
    "Bounding Box",
@@ -3917,12 +3918,10 @@ window.DATASETS = [
   "AI based defect types count": 4,
   "Abnormal": 344,
   "Annotation Format": [
-   "Bounding Box",
-   "Polygon"
+   "Bounding Box"
   ],
   "Annotation Level": [
-   "Object-level",
-   "Pixel-level"
+   "Object-level"
   ],
   "Automotive process": "Painting",
   "Class": 4,
@@ -3939,7 +3938,7 @@ window.DATASETS = [
    "Automotive"
   ],
   "Last edited time": "2025년 11월 27일 오후 12:41",
-  "License": "N/A",
+  "License": "CC-BY-4.0",
   "Link": "https://universe.roboflow.com/poli-h7nww/final-year-car-paint-defect",
   "Material Domain": [
    "Metal"
@@ -3950,11 +3949,10 @@ window.DATASETS = [
    "Quality Inspection"
   ],
   "Task": [
-   "Object-Detection",
-   "Segmentation"
+   "Object-Detection"
   ],
   "Total": 344,
-  "Year": 2022,
+  "Year": 2023,
   "in-lab": "",
   "isAutomotive": true,
   "isDownloadable": true,
@@ -4113,8 +4111,8 @@ window.DATASETS = [
    "Automotive"
   ],
   "Last edited time": "2026년 3월 20일 오후 3:07",
-  "License": "CC BY-NC 4.0",
-  "Link": "https://cardd-ustc.github.io/?utm_source=chatgpt.com",
+  "License": "Research-only",
+  "Link": "https://cardd-ustc.github.io/",
   "Material Domain": [
    "Metal",
    "Plastic"
@@ -4128,6 +4126,7 @@ window.DATASETS = [
   "Task": [
    "Classification",
    "Object-Detection",
+   "Salient Object Detection",
    "Segmentation"
   ],
   "Total": 4000,
@@ -4153,8 +4152,7 @@ window.DATASETS = [
    "Label"
   ],
   "Annotation Level": [
-   "Image-level",
-   "Object-level"
+   "Image-level"
   ],
   "Automotive process": "Inspection",
   "Class": 6,
@@ -4184,8 +4182,7 @@ window.DATASETS = [
    "Surface Inspection"
   ],
   "Task": [
-   "Classification",
-   "Object-Detection"
+   "Classification"
   ],
   "Total": 608,
   "Year": 2021,
@@ -4202,7 +4199,7 @@ window.DATASETS = [
    "Scratch"
   ],
   "AI based defect types count": 2,
-  "Abnormal": 260,
+  "Abnormal": 100,
   "Annotation Format": [
    "Bounding Box",
    "Label"
@@ -4240,7 +4237,7 @@ window.DATASETS = [
   "Task": [
    "Object-Detection"
   ],
-  "Total": 260,
+  "Total": 100,
   "Year": 2023,
   "in-lab": "",
   "isAutomotive": true,
@@ -4251,10 +4248,9 @@ window.DATASETS = [
  {
   "Name": "Car defect detection Computer Vision Dataset",
   "AI based Defect Type": [
-   "Break",
+   "Accident",
    "Dent",
-   "Glass Shatter",
-   "N/A",
+   "Glass-Break",
    "Scratch"
   ],
   "AI based defect types count": 4,
@@ -4267,7 +4263,7 @@ window.DATASETS = [
    "Object-level"
   ],
   "Automotive process": "Inspection",
-  "Class": 5,
+  "Class": 4,
   "Created time": "2025년 11월 22일 오후 8:47",
   "Data Source Type": "Real",
   "Defect Category": [
@@ -4294,9 +4290,7 @@ window.DATASETS = [
    "Surface Inspection"
   ],
   "Task": [
-   "Classification",
-   "Object-Detection",
-   "Segmentation"
+   "Object-Detection"
   ],
   "Total": 1071,
   "Year": 2024,
@@ -4338,7 +4332,7 @@ window.DATASETS = [
    "Automotive"
   ],
   "Last edited time": "2026년 3월 20일 오후 5:08",
-  "License": "N/A",
+  "License": "MIT",
   "Link": "https://github.com/juanb09111/heterogeneousAD",
   "Material Domain": [
    "N/A"
