@@ -79,6 +79,14 @@ a:hover { text-decoration: underline; }
 .hidden { display: none !important; }
 .svg-defs { position: absolute; width: 0; height: 0; pointer-events: none; }
 
+/* ---------------- 스크롤바 (테마에 맞춘 차분한 스타일) ---------------- */
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--text-dim) 45%, transparent) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--text-dim) 38%, transparent); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--text-dim) 65%, transparent); }
+::-webkit-scrollbar-corner { background: transparent; }
+
 /* ---------------- 오로라 배경 ---------------- */
 .bg-aurora {
   position: fixed; inset: 0; z-index: -2; overflow: hidden;
@@ -118,12 +126,10 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--glass-brd);
   box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-rim), inset 0 0 0 1px rgba(255,255,255,.04);
 }
-/* Chromium 한정 굴절 향상 */
+/* Chromium 한정 굴절 향상 — 큰 스크롤 영역(표/카드)은 성능 위해 제외 */
 .refraction .topbar,
 .refraction .sidebar,
 .refraction .stats,
-.refraction .table-wrap,
-.refraction .card,
 .refraction .modal-panel {
   backdrop-filter: blur(var(--blur)) saturate(var(--sat)) url(#glass-refraction);
 }
@@ -302,7 +308,7 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--glass-brd);
   box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-rim);
 }
-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; table-layout: fixed; min-width: 880px; }
 thead th {
   text-align: left; padding: 12px 14px; color: var(--text-dim); font-weight: 700; white-space: nowrap;
   background: var(--glass-bg-strong);
@@ -329,10 +335,13 @@ tbody tr:hover .ds-name::after { content: " ›"; color: var(--accent); font-wei
 .chip {
   background: var(--chip-bg); color: var(--chip-text); font-size: 11px; padding: 3px 9px;
   border-radius: var(--radius-pill); white-space: nowrap; border: 1px solid var(--chip-brd);
-  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
 }
 .chip.dim { opacity: .85; }
-.chip.more { background: transparent; border-color: transparent; color: var(--text-dim); font-weight: 600; padding-left: 2px; }
+/* '+N' 오버플로 — 다른 칩과 동일한 배경(pill), 색만 muted + 깔끔히 중앙정렬 */
+.chip.more {
+  color: var(--text-dim); font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center;
+}
 
 /* ---------------- 카드 ---------------- */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
@@ -368,12 +377,14 @@ tbody tr:hover .ds-name::after { content: " ›"; color: var(--accent); font-wei
 .modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 24px; }
 .modal-backdrop { position: absolute; inset: 0; background: rgba(8,12,22,.45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .modal-panel {
-  position: relative; border-radius: 24px; max-width: 780px; width: 100%; max-height: 86vh; overflow-y: auto; padding: 24px 26px;
+  position: relative; border-radius: 24px; max-width: 780px; width: 100%; max-height: 86vh; overflow: hidden;
   background: var(--glass-bg-strong);
   -webkit-backdrop-filter: blur(30px) saturate(190%); backdrop-filter: blur(30px) saturate(190%);
   border: 1px solid var(--glass-brd);
   box-shadow: var(--glass-shadow-lg), inset 0 1px 0 var(--glass-rim);
 }
+/* 실제 스크롤은 안쪽에서 — 스크롤바가 둥근 모서리를 뚫고 나오지 않게 */
+.modal-scroll { max-height: 86vh; overflow-y: auto; padding: 24px 26px; }
 .modal-panel h2 { margin: 0 0 2px; font-size: 21px; font-weight: 700; }
 .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
 .modal-head .meta { font-size: 12px; color: var(--text-dim); }
@@ -442,6 +453,7 @@ tbody tr:hover .ds-name::after { content: " ›"; color: var(--accent); font-wei
 @media (max-width: 920px) {
   .layout { grid-template-columns: 1fr; }
   .sidebar { position: static; max-height: none; }
+  .view-toggle { display: none; }  /* 좁은 화면은 카드 전용 → 표 토글 숨김 */
 }
 @media (max-width: 768px) {
   /* 상단바: 제목 위 / 버튼 줄 아래로 세로 배치 */
@@ -457,7 +469,8 @@ tbody tr:hover .ds-name::after { content: " ›"; color: var(--accent); font-wei
   .toolbar-right { width: 100%; justify-content: space-between; }
   /* 모달: 화면 꽉 차게 + 상세 1열 */
   .modal { padding: 12px; }
-  .modal-panel { padding: 18px 16px; border-radius: 18px; }
+  .modal-panel { border-radius: 18px; }
+  .modal-scroll { padding: 18px 16px; }
   .dl { grid-template-columns: 1fr; gap: 2px 0; }
   .dl dt { padding-top: 10px; font-weight: 600; }
   /* 폼: 1열 */

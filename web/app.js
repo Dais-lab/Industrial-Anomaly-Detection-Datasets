@@ -7,23 +7,21 @@
 const DATA = (window.DATASETS || []).map((d, i) => ({ ...d, _id: i }));
 
 /* 사이드바 패싯 (배열형 멀티값 컬럼) — 라벨은 한국어 */
-const FACETS = [
-  { key: "Industry Domain",   label: "산업 분야" },
-  { key: "Task",              label: "태스크" },
-  { key: "Defect Category",   label: "결함 범주" },
-  { key: "Image Modality",    label: "이미지 모달리티" },
-  { key: "Material Domain",   label: "소재" },
-  { key: "Annotation Format", label: "어노테이션 형식" },
-  { key: "Annotation Level",  label: "어노테이션 레벨" },
-  { key: "Process Domain",    label: "공정" },
+/* 사이드바 패싯 — 대표 테이블 컬럼 순서를 앞에 두고, 나머지 필터를 뒤에 */
+const ALL_FACETS = [
+  { key: "Industry Domain",      label: "산업 분야" },
+  { key: "Process Domain",       label: "공정" },
+  { key: "Defect Category",      label: "결함 범주" },
+  { key: "AI based Defect Type", label: "결함 유형" },
+  { key: "Image Modality",       label: "이미지 모달리티" },
+  { key: "License",              label: "라이선스" },
+  { key: "Task",                 label: "태스크" },
+  { key: "Material Domain",      label: "소재" },
+  { key: "Annotation Format",    label: "어노테이션 형식" },
+  { key: "Annotation Level",     label: "어노테이션 레벨" },
+  { key: "Data Source Type",     label: "데이터 생성 방식" },
+  { key: "Dimension",            label: "차원" },
 ];
-/* 단일값 컬럼도 패싯으로 노출 */
-const FACETS_SINGLE = [
-  { key: "Data Source Type", label: "데이터 출처" },
-  { key: "Dimension",        label: "차원" },
-  { key: "License",          label: "라이선스" },
-];
-const ALL_FACETS = [...FACETS, ...FACETS_SINGLE];
 
 const BOOL_FILTERS = [
   { key: "isImage",        label: "이미지" },
@@ -32,7 +30,7 @@ const BOOL_FILTERS = [
 ];
 
 const SORTS = [
-  { key: "Total",                       label: "총 이미지 수", num: true },
+  { key: "Total",                       label: "총 데이터 수", num: true },
   { key: "Year",                        label: "연도",         num: true },
   { key: "AI based defect types count", label: "결함 종류 수", num: true },
   { key: "Class",                       label: "클래스 수",    num: true },
@@ -42,14 +40,15 @@ const SORTS = [
 
 /* 표 컬럼 */
 const COLUMNS = [
-  { key: "Name",            label: "이름",   type: "name" },
-  { key: "Industry Domain", label: "산업 분야", type: "chips" },
-  { key: "Task",            label: "태스크",  type: "chips" },
-  { key: "Defect Category", label: "결함 범주", type: "chips" },
-  { key: "Image Modality",  label: "모달리티", type: "chips" },
-  { key: "Total",           label: "총 수",  type: "num" },
-  { key: "Year",            label: "연도",   type: "num" },
-  { key: "License",         label: "라이선스", type: "text" },
+  { key: "Name",                 label: "이름",      type: "name",  w: "20%" },
+  { key: "Industry Domain",      label: "산업 분야",  type: "chips", w: "10%" },
+  { key: "Process Domain",       label: "공정",      type: "chips", w: "13%" },
+  { key: "Defect Category",      label: "결함 범주",  type: "chips", w: "10%" },
+  { key: "AI based Defect Type", label: "결함 유형",  type: "chips", w: "15%" },
+  { key: "Image Modality",       label: "모달리티",   type: "chips", w: "7%" },
+  { key: "Total",                label: "총 데이터 수", type: "num",  w: "8%" },
+  { key: "Year",                 label: "연도",      type: "year",  w: "5%" },
+  { key: "License",              label: "라이선스",   type: "text",  w: "12%" },
 ];
 
 /* ---------------- 상태 ---------------- */
@@ -60,6 +59,7 @@ const state = {
   sortKey: "Total",
   sortDir: -1,                // -1 내림차순, 1 오름차순
   view: "table",
+  desktopView: "table",       // 데스크톱(넓은 화면)에서 사용자가 선택한 뷰 — 넓어질 때 복원
   showAll: {},                // {facetKey: bool} — 옵션 더보기
 };
 ALL_FACETS.forEach(f => (state.facets[f.key] = new Set()));
@@ -209,7 +209,12 @@ function renderTable(rows) {
   const wrap = el("div", "table-wrap");
   const table = el("table");
   const thead = el("thead"); const trh = el("tr");
-  COLUMNS.forEach(c => trh.appendChild(el("th", null, c.label)));
+  COLUMNS.forEach(c => {
+    const th = el("th", null, c.label);
+    if (c.w) th.style.width = c.w;
+    if (c.type === "num" || c.type === "year") th.style.textAlign = "right";  // 숫자 헤더는 값과 같이 우측 정렬
+    trh.appendChild(th);
+  });
   thead.appendChild(trh); table.appendChild(thead);
   const tb = el("tbody");
   rows.forEach(d => {
@@ -219,6 +224,7 @@ function renderTable(rows) {
       const td = el("td");
       if (c.type === "name") { td.className = "name"; td.appendChild(el("span", "ds-name", d.Name)); }
       else if (c.type === "num") { td.className = "num"; td.textContent = fmtNum(d[c.key]); }
+      else if (c.type === "year") { td.className = "num"; td.textContent = d[c.key] == null ? "—" : String(d[c.key]); }
       else if (c.type === "chips") td.appendChild(chipList(d[c.key], false, 3));
       else td.textContent = d[c.key] || "—";
       tr.appendChild(td);
@@ -282,7 +288,7 @@ function renderStats(rows) {
 /* ---------------- 모달 ---------------- */
 /* 상단 핵심 지표 타일 */
 const STAT_TILES = [
-  { key: "Total",                       label: "총 이미지" },
+  { key: "Total",                       label: "총 데이터" },
   { key: "Abnormal",                    label: "비정상" },
   { key: "Normal",                      label: "정상" },
   { key: "Class",                       label: "클래스 수" },
@@ -296,9 +302,9 @@ const DETAIL_GROUPS = [
 ];
 const FIELD_LABELS = {
   "AI based Defect Type": "결함 유형", "AI based defect types count": "결함 종류 수",
-  "Class": "클래스 수", "Total": "총 이미지", "Normal": "정상", "Abnormal": "비정상",
-  "Data Source Type": "데이터 출처", "Defect Category": "결함 범주", "Dimension": "차원",
-  "Image Modality": "모달리티", "Industry Domain": "산업 분야", "Material Domain": "소재",
+  "Class": "클래스 수", "Total": "총 데이터", "Normal": "정상", "Abnormal": "비정상",
+  "Data Source Type": "데이터 생성 방식", "Defect Category": "결함 범주", "Dimension": "차원",
+  "Image Modality": "이미지 모달리티", "Industry Domain": "산업 분야", "Material Domain": "소재",
   "Process Domain": "공정", "Annotation Format": "어노테이션 형식", "Annotation Level": "어노테이션 레벨",
   "Task": "태스크", "Year": "연도", "License": "라이선스", "isImage": "이미지 여부",
   "isDownloadable": "다운로드 가능", "isAutomotive": "자동차 관련", "Automotive process": "자동차 공정",
@@ -313,6 +319,7 @@ function fmtVal(v) {
 function openModal(d) {
   const panel = $("#modal-panel");
   panel.innerHTML = "";
+  const scroll = el("div", "modal-scroll");   // 내부 스크롤 영역(둥근 모서리 밖으로 스크롤바 안 나오게)
 
   // 헤더
   const head = el("div", "modal-head");
@@ -322,9 +329,9 @@ function openModal(d) {
   head.appendChild(hl);
   const close = el("button", "modal-close", "✕"); close.onclick = closeModal;
   head.appendChild(close);
-  panel.appendChild(head);
+  scroll.appendChild(head);
 
-  if (d.description) panel.appendChild(el("div", "modal-desc", d.description));
+  if (d.description) scroll.appendChild(el("div", "modal-desc", d.description));
 
   // 핵심 지표 타일
   const tiles = el("div", "stat-tiles");
@@ -334,7 +341,7 @@ function openModal(d) {
     tile.appendChild(el("div", "st-lbl", t.label));
     tiles.appendChild(tile);
   });
-  panel.appendChild(tiles);
+  scroll.appendChild(tiles);
 
   // 그룹 섹션
   DETAIL_GROUPS.forEach(g => {
@@ -342,7 +349,7 @@ function openModal(d) {
     sec.appendChild(el("h4", "ms-title", g.title));
     const dl = el("dl", "dl");
     g.fields.forEach(k => {
-      const val = fmtVal(d[k]);
+      const val = (k === "Year") ? (d[k] == null ? "—" : String(d[k])) : fmtVal(d[k]);  // 연도는 콤마 없이
       dl.appendChild(el("dt", null, FIELD_LABELS[k] || k));
       const dd = el("dd");
       if (Array.isArray(val)) val.forEach(v => dd.appendChild(el("span", "chip", v)));
@@ -350,14 +357,15 @@ function openModal(d) {
       dl.appendChild(dd);
     });
     sec.appendChild(dl);
-    panel.appendChild(sec);
+    scroll.appendChild(sec);
   });
 
   if (d.Link) {
     const a = el("a", "modal-link", "원본 데이터셋 열기 ↗");
     a.href = d.Link; a.target = "_blank"; a.rel = "noopener";
-    panel.appendChild(a);
+    scroll.appendChild(a);
   }
+  panel.appendChild(scroll);
   $("#modal").classList.remove("hidden");
 }
 function closeModal() { $("#modal").classList.add("hidden"); }
@@ -412,6 +420,7 @@ function slugify(name) {
 function buildAddForm() {
   const panel = $("#add-panel");
   panel.innerHTML = "";
+  const scroll = el("div", "modal-scroll");   // 내부 스크롤(폼이 길어도 끝까지 스크롤 가능)
 
   const head = el("div", "modal-head");
   const hl = el("div");
@@ -420,9 +429,9 @@ function buildAddForm() {
   head.appendChild(hl);
   const close = el("button", "modal-close", "✕"); close.onclick = closeAddModal;
   head.appendChild(close);
-  panel.appendChild(head);
+  scroll.appendChild(head);
 
-  panel.appendChild(el("div", "add-note",
+  scroll.appendChild(el("div", "add-note",
     "제출하면 GitHub에 새 파일(PR)로 올라가고, 관리자가 검토·병합한 뒤 재빌드하면 사이트에 반영됩니다. " +
     "여기서의 ‘미리보기 추가’는 이 브라우저 세션에서만 보입니다(저장 아님)."));
 
@@ -469,7 +478,7 @@ function buildAddForm() {
     }
     grid.appendChild(field);
   });
-  panel.appendChild(grid);
+  scroll.appendChild(grid);
 
   const actions = el("div", "add-actions");
   const bPrev = el("button", "ghost", "미리보기에 추가"); bPrev.onclick = onPreviewAdd;
@@ -477,9 +486,10 @@ function buildAddForm() {
   const bData = el("button", "ghost", "전체 data.js 내려받기"); bData.onclick = onDownloadDataJs;
   const bPR = el("button", "modal-link", "GitHub에 PR로 제출 ↗"); bPR.onclick = onSubmitGitHub; bPR.style.marginTop = "0";
   actions.append(bPrev, bRec, bData, bPR);
-  panel.appendChild(actions);
+  scroll.appendChild(actions);
 
-  panel.appendChild(el("div", "add-status"));
+  scroll.appendChild(el("div", "add-status"));
+  panel.appendChild(scroll);
 }
 
 function collectAddForm() {
@@ -599,13 +609,24 @@ function init() {
   let t;
   $("#search").oninput = e => { clearTimeout(t); t = setTimeout(() => { state.q = e.target.value.trim().toLowerCase(); render(); }, 120); };
 
-  // 뷰 토글
+  // 반응형 뷰: 좁은 화면(≤920px)=카드 강제, 넓어지면 데스크톱 선택(기본 표)으로 자동 복귀
+  const narrowMQ = matchMedia("(max-width: 920px)");
+  const syncToggle = () => document.querySelectorAll(".view-toggle button")
+    .forEach(b => b.classList.toggle("active", b.dataset.view === state.view));
+  function applyResponsiveView(doRender) {
+    const want = narrowMQ.matches ? "card" : state.desktopView;
+    if (state.view !== want) { state.view = want; syncToggle(); if (doRender) render(); }
+  }
+  // 뷰 토글 (좁은 화면에선 숨겨져 데스크톱에서만 클릭됨 → 그 선택을 기억)
   document.querySelectorAll(".view-toggle button").forEach(btn => {
     btn.onclick = () => {
-      document.querySelectorAll(".view-toggle button").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active"); state.view = btn.dataset.view; render();
+      state.view = btn.dataset.view;
+      if (!narrowMQ.matches) state.desktopView = state.view;
+      syncToggle(); render();
     };
   });
+  narrowMQ.addEventListener("change", () => applyResponsiveView(true));
+  applyResponsiveView(false);  // 초기 상태 세팅(아래 최초 render가 반영)
 
   // 초기화
   $("#btn-reset").onclick = () => {
