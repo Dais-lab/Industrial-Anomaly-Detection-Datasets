@@ -9,10 +9,11 @@ const DATA = (window.DATASETS || []).map((d, i) => ({ ...d, _id: i }));
 /* 사이드바 패싯 (배열형 멀티값 컬럼) — 라벨은 한국어 */
 /* 사이드바 패싯 — 대표 테이블 컬럼 순서를 앞에 두고, 나머지 필터를 뒤에 */
 const ALL_FACETS = [
-  { key: "Industry Domain",      label: "산업 분야" },
-  { key: "Process Domain",       label: "공정" },
-  { key: "Defect Category",      label: "결함 범주" },
-  { key: "AI based Defect Type", label: "결함 유형" },
+  { key: "Industry Domain",      label: "산업 분야", open: true },
+  { key: "Process Domain",       label: "제조 산업", open: true },
+  { key: "Automotive process",   label: "자동차 공정", open: true },
+  { key: "Defect Category",      label: "결함 범주", open: true },
+  { key: "AI based Defect Type", label: "결함 유형", open: true },
   { key: "Image Modality",       label: "이미지 모달리티" },
   { key: "License",              label: "라이선스" },
   { key: "Task",                 label: "태스크" },
@@ -42,7 +43,7 @@ const SORTS = [
 const COLUMNS = [
   { key: "Name",                 label: "이름",      type: "name",  w: "18%" },
   { key: "Industry Domain",      label: "산업 분야",  type: "chips", w: "10%" },
-  { key: "Process Domain",       label: "공정",      type: "chips", w: "13%" },
+  { key: "Process Domain",       label: "제조 산업",  type: "chips", w: "13%" },
   { key: "Defect Category",      label: "결함 범주",  type: "chips", w: "13%" },
   { key: "AI based Defect Type", label: "결함 유형",  type: "chips", w: "15%" },
   { key: "Image Modality",       label: "모달리티",   type: "chips", w: "7%" },
@@ -140,15 +141,18 @@ function facetCounts(facetKey) {
 
 function buildFacets() {
   const root = $("#facets"); root.innerHTML = "";
-  ALL_FACETS.forEach((f, idx) => {
+  ALL_FACETS.forEach((f) => {
     const counts = facetCounts(f.key);
     const sel = state.facets[f.key];
-    const entries = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    // 값은 알파벳순 정렬 (카운트와 무관)
+    const entries = [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
     // 선택된 값이 카운트0이어도 보이도록 보강
     sel.forEach(v => { if (!counts.has(v)) entries.push([v, 0]); });
+    // "N/A" 는 카운트와 무관하게 항상 목록 맨 끝으로 (안정 정렬 — 나머지 순서 유지)
+    entries.sort((a, b) => (a[0] === "N/A") - (b[0] === "N/A"));
 
     const det = el("details", "facet");
-    if (idx < 4 || sel.size) det.open = true;
+    if (f.open || sel.size) det.open = true;
     const sum = el("summary");
     sum.appendChild(el("span", null, f.label + (sel.size ? ` · ${sel.size}` : "")));
     sum.appendChild(el("span", "chev", "▸"));
@@ -326,7 +330,7 @@ const FIELD_LABELS = {
   "Class": "클래스 수", "Total": "총 데이터", "Normal": "정상", "Abnormal": "비정상",
   "Data Source Type": "데이터 생성 방식", "Defect Category": "결함 범주", "Dimension": "차원",
   "Image Modality": "이미지 모달리티", "Industry Domain": "산업 분야", "Material Domain": "소재",
-  "Process Domain": "공정", "Annotation Format": "어노테이션 형식", "Annotation Level": "어노테이션 레벨",
+  "Process Domain": "제조 산업", "Annotation Format": "어노테이션 형식", "Annotation Level": "어노테이션 레벨",
   "Task": "태스크", "Year": "연도", "License": "라이선스", "isImage": "이미지 여부",
   "isDownloadable": "다운로드 가능", "isAutomotive": "자동차 관련", "Automotive process": "자동차 공정",
   "Created time": "생성일", "Last edited time": "최종 수정",
@@ -430,7 +434,7 @@ const FORM_FIELDS = [
   { key: "Defect Category", label: "결함 범주", type: "multi" },
   { key: "Task", label: "태스크", type: "multi" },
   { key: "Material Domain", label: "소재", type: "multi" },
-  { key: "Process Domain", label: "공정", type: "multi" },
+  { key: "Process Domain", label: "제조 산업", type: "multi" },
   { key: "AI based Defect Type", label: "결함 유형", type: "multi" },
   { key: "Image Modality", label: "이미지 모달리티", type: "multi" },
   { key: "Annotation Format", label: "어노테이션 형식", type: "multi" },

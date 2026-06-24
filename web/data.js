@@ -436,9 +436,7 @@ window.DATASETS = [
   "Material Domain": [
    "Multi-material"
   ],
-  "Model DB": [
-   "제목 없음 (https://app.notion.com/p/276b7e86a5bd80ca8a32caa49d059621?pvs=21)"
-  ],
+  "Model DB": [],
   "Normal": 1799,
   "Process Domain": [
    "Quality Inspection"
@@ -1950,7 +1948,7 @@ window.DATASETS = [
   "description": ""
  },
  {
-  "Name": "Hyundai RB Dataset",
+  "Name": "H사 RB Dataset",
   "AI based Defect Type": [
    "Burn Through",
    "Contamination",
@@ -2011,7 +2009,7 @@ window.DATASETS = [
   "description": ""
  },
  {
-  "Name": "Hyundai RB Dataset(middle)",
+  "Name": "H사 RB Dataset(middle)",
   "AI based Defect Type": [
    "Burn Through",
    "Contamination",
@@ -2070,7 +2068,7 @@ window.DATASETS = [
   "description": ""
  },
  {
-  "Name": "Hyundai RB Dataset(IQI)",
+  "Name": "H사 RB Dataset(IQI)",
   "AI based Defect Type": [
    "Crack",
    "Overlap",
@@ -3960,7 +3958,7 @@ window.DATASETS = [
   "description": ""
  },
  {
-  "Name": "화신 용접비드",
+  "Name": "H사 용접비드",
   "AI based Defect Type": [
    "Lack of Penetration",
    "Lack of fusion",
@@ -3993,7 +3991,7 @@ window.DATASETS = [
   ],
   "Last edited time": "2026년 4월 24일 오후 5:04",
   "License": "N/A",
-  "Link": "https://www.notion.so/2aab7e86a5bd80ad8d81d6e1fe920530?source=copy_link",
+  "Link": "",
   "Material Domain": [
    "Metal"
   ],
