@@ -1948,7 +1948,7 @@ window.DATASETS = [
   "description": ""
  },
  {
-  "Name": "H사 RB Dataset",
+  "Name": "Welding RT Dataset",
   "AI based Defect Type": [
    "Burn Through",
    "Contamination",
@@ -2009,7 +2009,7 @@ window.DATASETS = [
   "description": ""
  },
  {
-  "Name": "H사 RB Dataset(middle)",
+  "Name": "Welding RT Dataset(middle)",
   "AI based Defect Type": [
    "Burn Through",
    "Contamination",
@@ -2068,7 +2068,7 @@ window.DATASETS = [
   "description": ""
  },
  {
-  "Name": "H사 RB Dataset(IQI)",
+  "Name": "Welding RT Dataset(IQI)",
   "AI based Defect Type": [
    "Crack",
    "Overlap",
@@ -3958,7 +3958,7 @@ window.DATASETS = [
   "description": ""
  },
  {
-  "Name": "H사 용접비드",
+  "Name": "용접비드",
   "AI based Defect Type": [
    "Lack of Penetration",
    "Lack of fusion",
